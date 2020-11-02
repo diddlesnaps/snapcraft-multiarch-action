@@ -138,6 +138,8 @@ export class SnapcraftBuilder {
     if (snaps.length > 1) {
       core.warning(`Multiple snaps found in ${this.projectRoot}`)
     }
-    return path.join(this.projectRoot, snaps[0])
+    const snap = path.join(this.projectRoot, snaps[0])
+    await exec.exec('sudo', ['chown', process.getuid().toString(), snap])
+    return snap
   }
 }

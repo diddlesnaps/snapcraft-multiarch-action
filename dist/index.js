@@ -281,7 +281,9 @@ class SnapcraftBuilder {
             if (snaps.length > 1) {
                 core.warning(`Multiple snaps found in ${this.projectRoot}`);
             }
-            return external_path_.join(this.projectRoot, snaps[0]);
+            const snap = external_path_.join(this.projectRoot, snaps[0]);
+            yield exec.exec('sudo', ['chown', external_process_.getuid().toString(), snap]);
+            return snap;
         });
     }
 }
