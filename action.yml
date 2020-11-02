@@ -1,0 +1,55 @@
+name: 'Snapcraft Build'
+description: 'Build a Snapcraft project for multiple architectures'
+author: 'Daniel Llewellyn'
+branding:
+  icon: 'package'
+  color: 'orange'
+inputs:
+  path:
+    description: 'The location of the Snapcraft project.  Defaults to the base of the repository'
+    default: '.'
+  build-info:
+    description: >
+      Whether to include build information in the resulting snap.
+
+      This will add snap/manifest.yaml and snap/snapcraft.yaml files
+      to the snap.  The Snap Store can use this information to detect
+      snaps with security vulnerabilities introduced through
+      stage-packages.
+
+      Proprietary applications may want to disable this due to
+      the information leakage.
+    default: 'true'
+  snapcraft-channel:
+    description: >
+      The Snapcraft channel to use
+
+      By default, the action will use the stable version of Snapcraft
+      to build the project.  This parameter can be used to instead
+      select a different channel such as beta, candidate, or edge.
+    default: 'stable'
+  snapcraft-args:
+    description: >
+      Additional arguments to pass to Snapcraft
+
+      Some experimental Snapcraft features are disabled by default and
+      must be turned on via a `--enable-experimental-*` command line
+      argument.  This parameter can be used to turn on such features.
+    default: ''
+  architecture:
+    description: >
+      The architecture to build with Snapcraft
+
+      Snap Packages run on multiple CPU architectures. This parameter
+      allows you to build for any of the supported architectures. It
+      accepts the same values you would use in the `build-on` option
+      in your `snapcraft.yaml` when building via the Build Service.
+      You may only specify one architecture at a time so it's best to
+      combine this with the build matrix feature of GitHub Actions.
+    default: 'amd64'
+outputs:
+  snap:
+    description: 'The file name of the resulting snap.'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
