@@ -29,10 +29,6 @@ jobs:
       id: snapcraft
       with:
         path: './test-projects/${{ matrix.project }}'
-    - uses: actions/upload-artifact@v2
-      with:
-        name: 'snap'
-        path: ${{ steps.snapcraft.outputs.snap}}
 
   check-runner: # make sure the action works on each VM image
     strategy:
