@@ -30,7 +30,7 @@ const platforms: {[key: string]: string} = {
   amd64: 'linux/amd64',
   armhf: 'linux/arm/v7',
   arm64: 'linux/arm64',
-  ppc64: 'linux/ppc64le',
+  ppc64el: 'linux/ppc64le',
   s390x: 'linux/s390x'
 }
 

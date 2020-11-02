@@ -62,7 +62,7 @@ jobs:
         - amd64
         - armhf
         - arm64
-        - ppc64
+        - ppc64el
         - s390x
     steps:
     - uses: actions/checkout@v2
@@ -126,5 +126,5 @@ arguments to Snapcraft.
 By default, the action will build for AMD64. You may use this parameter
 to indicate an alternative architecture from any of those supported by
 the `snapcraft` utility. At the time of writing the supported
-architectures are `amd64`, `i386`, `arm64`, `armhf`, `ppc64` and `s390x`.
+architectures are `amd64`, `i386`, `arm64`, `armhf`, `ppc64el` and `s390x`.
 This is most-useful when used with GitHub Actions' `matrix` feature.
