@@ -5,7 +5,6 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as yaml from 'js-yaml'
 
-const apparmorRules = '/etc/apparmor.d/usr.lib.snapd.snap-confine.real'
 const dockerJson = '/etc/docker/daemon.json'
 
 async function haveFile(filePath: string): Promise<boolean> {
@@ -18,17 +17,10 @@ async function haveFile(filePath: string): Promise<boolean> {
 }
 
 export async function ensureDisabledAppArmorRules(): Promise<void> {
-  if (
-    (await exec.exec('sudo', ['aa-enabled'])) === 0 &&
-    (await haveFile(apparmorRules))
-  ) {
-    await exec.exec('sudo', ['mv', apparmorRules, '/etc/apparmor.d/disable/'])
-    await exec.exec('sudo', [
-      'apparmor_parser',
-      '-R',
-      '/etc/apparmor.d/disable/usr.lib.snapd.snap-confine.real'
-    ])
-  }
+  await exec.exec('sudo', [
+    'mkdir',
+    '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
+  ])
 }
 
 export async function ensureDockerExperimental(): Promise<void> {

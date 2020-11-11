@@ -1,10 +1,17 @@
 // -*- mode: javascript; js-indent-level: 2 -*-
 
+import * as os from 'os'
 import * as core from '@actions/core'
+import * as exec from '@actions/exec'
 import {SnapcraftBuilder} from './build'
+import * as stateHelper from './state-helper'
 
 async function run(): Promise<void> {
   try {
+    if (os.platform() !== 'linux') {
+      throw new Error(`Only supported on linux platform`)
+    }
+
     const path = core.getInput('path')
     const buildInfo =
       (core.getInput('build-info') || 'true').toUpperCase() === 'TRUE'
@@ -30,4 +37,16 @@ async function run(): Promise<void> {
   }
 }
 
-run()
+async function cleanup(): Promise<void> {
+  await exec.exec('sudo', [
+    'rm',
+    '-rf',
+    '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
+  ])
+}
+
+if (!stateHelper.isPost) {
+  run()
+} else {
+  cleanup()
+}
