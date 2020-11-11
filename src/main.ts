@@ -39,8 +39,7 @@ async function run(): Promise<void> {
 
 async function cleanup(): Promise<void> {
   await exec.exec('sudo', [
-    'rm',
-    '-rf',
+    'rmdir',
     '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
   ])
 }

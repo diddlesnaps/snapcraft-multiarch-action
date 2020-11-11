@@ -337,8 +337,7 @@ function run() {
 function cleanup() {
     return main_awaiter(this, void 0, void 0, function* () {
         yield exec.exec('sudo', [
-            'rm',
-            '-rf',
+            'rmdir',
             '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
         ]);
     });
