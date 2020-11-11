@@ -107,6 +107,8 @@ export class SnapcraftBuilder {
         '--rm',
         '--tty',
         '--privileged',
+        '--security-opt',
+        'apparmor=:docker-snapcraft:unconfined',
         '--volume',
         `${this.projectRoot}:/data`,
         '--workdir',

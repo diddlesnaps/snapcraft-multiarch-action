@@ -11,17 +11,9 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-test('ensureDisabledAppArmorRules disables AppArmor rules if needed', async () => {
-  expect.assertions(4)
+test('ensureDisabledAppArmorRules creates new AppArmor namespace', async () => {
+  expect.assertions(1)
 
-  const accessMock = jest
-    .spyOn(fs.promises, 'access')
-    .mockImplementation(
-      async (
-        filename: fs.PathLike,
-        mode?: number | undefined
-      ): Promise<void> => {}
-    )
   const execMock = jest.spyOn(exec, 'exec').mockImplementation(
     async (program: string, args?: string[]): Promise<number> => {
       return 0
@@ -30,42 +22,9 @@ test('ensureDisabledAppArmorRules disables AppArmor rules if needed', async () =
 
   await tools.ensureDisabledAppArmorRules()
 
-  expect(accessMock).toHaveBeenCalled()
-  expect(execMock).toHaveBeenNthCalledWith(1, 'sudo', ['aa-enabled'])
-  expect(execMock).toHaveBeenNthCalledWith(2, 'sudo', [
-    'mv',
-    '/etc/apparmor.d/usr.lib.snapd.snap-confine.real',
-    '/etc/apparmor.d/disable/'
-  ])
-  expect(execMock).toHaveBeenNthCalledWith(3, 'sudo', [
-    'apparmor_parser',
-    '-R',
-    '/etc/apparmor.d/disable/usr.lib.snapd.snap-confine.real'
-  ])
-})
-
-test('ensureDisabledAppArmorRules is no-op if rules not present', async () => {
-  expect.assertions(3)
-
-  const accessMock = jest.spyOn(fs.promises, 'access').mockImplementation(
-    async (filename: fs.PathLike, mode?: number | undefined): Promise<void> => {
-      throw new Error('not found')
-    }
-  )
-  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
-    async (program: string, args?: string[]): Promise<number> => {
-      return 0
-    }
-  )
-
-  await tools.ensureDisabledAppArmorRules()
-
-  expect(accessMock).toHaveBeenCalled()
-  expect(execMock).toHaveBeenCalledWith('sudo', ['aa-enabled'])
-  expect(execMock).not.toHaveBeenCalledWith('sudo', [
-    'apparmor_parser',
-    '-R',
-    '/etc/apparmor.d/disable/usr.lib.snapd.snap-confine.real'
+  expect(execMock).toHaveBeenNthCalledWith(1, 'sudo', [
+    'mkdir',
+    '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
   ])
 })
 
