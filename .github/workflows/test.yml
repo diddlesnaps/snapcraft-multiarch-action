@@ -16,23 +16,12 @@ jobs:
         npm run all
 
   integration: # make sure the action works on a clean machine without building
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         project:
           - core
           - core18
           - core20
-    steps:
-    - uses: actions/checkout@v2
-    - uses: ./
-      id: snapcraft
-      with:
-        path: './test-projects/${{ matrix.project }}'
-
-  check-runner: # make sure the action works on each VM image
-    strategy:
-      matrix:
         runner:
           - ubuntu-16.04
           - ubuntu-18.04
@@ -41,5 +30,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: ./
+      id: snapcraft
       with:
-        path: './test-projects/core18'
+        path: './test-projects/${{ matrix.project }}'
