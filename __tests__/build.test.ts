@@ -21,8 +21,29 @@ test('SnapcraftBuilder expands tilde in project root', () => {
   expect(builder.projectRoot).toBe(path.join(os.homedir(), 'foo/bar'))
 })
 
-for (const base of ['core', 'core18', 'core20']) {
-  test(`SnapcraftBuilder.build runs a snap build with base: ${base}`, async () => {
+for (const [base, arch] of [
+  ['core'],
+  ['core', 'amd64'],
+  ['core', 'i386'],
+  ['core', 'arm64'],
+  ['core', 'armhf'],
+  ['core', 'ppc64el'],
+  ['core18'],
+  ['core18', 'amd64'],
+  ['core18', 'i386'],
+  ['core18', 'arm64'],
+  ['core18', 'armhf'],
+  ['core18', 'ppc64el'],
+  ['core18', 's390x'],
+  ['core20'],
+  ['core20', 'amd64'],
+  ['core20', 'i386'],
+  ['core20', 'arm64'],
+  ['core20', 'armhf'],
+  ['core20', 'ppc64el'],
+  ['core20', 's390x']
+]) {
+  test(`SnapcraftBuilder.build runs a snap build with base: ${base}; and arch: ${arch}`, async () => {
     expect.assertions(4)
 
     const ensureDisabledAppArmorRulesMock = jest
@@ -48,10 +69,15 @@ for (const base of ['core', 'core18', 'core20']) {
       true,
       'stable',
       '',
-      '',
+      arch,
       ''
     )
     await builder.build()
+
+    let platform: string[] = []
+    if (arch && arch in build.platforms) {
+      platform = ['--platform', build.platforms[arch]]
+    }
 
     expect(ensureDisabledAppArmorRulesMock).toHaveBeenCalled()
     expect(ensureDockerExperimentalMock).toHaveBeenCalled()
@@ -69,6 +95,7 @@ for (const base of ['core', 'core18', 'core20']) {
         `${process.cwd()}/${projectDir}:/data`,
         '--workdir',
         '/data',
+        ...platform,
         '--env',
         'SNAPCRAFT_BUILD_ENVIRONMENT=host',
         '--env',

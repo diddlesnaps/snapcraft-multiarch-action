@@ -25,7 +25,7 @@ function expandHome(p: string): string {
   return p
 }
 
-const platforms: {[key: string]: string} = {
+export const platforms: {[key: string]: string} = {
   i386: 'linux/386',
   amd64: 'linux/amd64',
   armhf: 'linux/arm/v7',
@@ -92,7 +92,7 @@ export class SnapcraftBuilder {
     }
 
     let dockerArgs: string[] = []
-    if (platforms[this.architecture]) {
+    if (this.architecture in platforms) {
       dockerArgs = dockerArgs.concat('--platform', platforms[this.architecture])
     }
 

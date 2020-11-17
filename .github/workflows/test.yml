@@ -18,18 +18,28 @@ jobs:
   integration: # make sure the action works on a clean machine without building
     strategy:
       matrix:
-        project:
+        base:
           - core
           - core18
           - core20
-        runner:
-          - ubuntu-16.04
-          - ubuntu-18.04
-          - ubuntu-20.04
-    runs-on: ${{ matrix.runner }}
+        arch:
+          - ''
+          - amd64
+          - i386
+          - armhf
+          - arm64
+          - ppc64el
+        exclude:
+          - base: core20
+            arch: armhf
+          - base: core20
+            arch: i386
+    runs-on: ubuntu-latest
     steps:
+    - uses: docker/setup-qemu-action@v1
     - uses: actions/checkout@v2
     - uses: ./
       id: snapcraft
       with:
-        path: './test-projects/${{ matrix.project }}'
+        path: './test-projects/${{ matrix.base }}'
+        architecture: ${{ matrix.arch }}
