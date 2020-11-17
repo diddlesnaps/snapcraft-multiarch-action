@@ -234,7 +234,7 @@ class SnapcraftBuilder {
                 env['USE_SNAPCRAFT_CHANNEL'] = this.snapcraftChannel;
             }
             let dockerArgs = [];
-            if (platforms[this.architecture]) {
+            if (this.architecture in platforms) {
                 dockerArgs = dockerArgs.concat('--platform', platforms[this.architecture]);
             }
             for (const key in env) {
@@ -322,9 +322,9 @@ function run() {
             core.info(`Building Snapcraft project in "${path}"...`);
             const snapcraftChannel = core.getInput('snapcraft-channel');
             const snapcraftArgs = core.getInput('snapcraft-args');
-            const platform = core.getInput('platform');
+            const architecture = core.getInput('architecture');
             const environment = core.getInput('environment');
-            const builder = new SnapcraftBuilder(path, buildInfo, snapcraftChannel, snapcraftArgs, platform, environment);
+            const builder = new SnapcraftBuilder(path, buildInfo, snapcraftChannel, snapcraftArgs, architecture, environment);
             yield builder.build();
             const snap = yield builder.outputSnap();
             core.setOutput('snap', snap);
