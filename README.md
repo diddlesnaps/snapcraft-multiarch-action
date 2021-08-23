@@ -67,8 +67,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: docker/setup-qemu-action@v1
-      with:
-        image: tonistiigi/binfmt@sha256:df15403e06a03c2f461c1f7938b171fda34a5849eb63a70e2a2109ed5a778bde
     - uses: diddlesnaps/snapcraft-multiarch-action@v1
       with:
         architecture: ${{ matrix.platform }}
