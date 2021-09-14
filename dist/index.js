@@ -3,7 +3,7 @@ module.exports =
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 154:
+/***/ 290:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 // ESM COMPAT FLAG
@@ -160,6 +160,30 @@ function parseArgs(argumentsString) {
     return args;
 }
 
+// CONCATENATED MODULE: ./lib/channel-matrix.js
+function getChannel(base, channel) {
+    switch (base) {
+        case 'core22':
+        case 'core20':
+            return channel;
+        case 'core18':
+            if (channel.startsWith('5.x/')) {
+                return channel;
+            }
+            if (['stable', 'candidate', 'beta', 'edge'].includes(channel)) {
+                return `5.x/${channel}`;
+            }
+        case 'core':
+            if (channel.startsWith('4.x/')) {
+                return channel;
+            }
+            if (['stable', 'candidate', 'beta', 'edge'].includes(channel)) {
+                return `4.x/${channel}`;
+            }
+    }
+    throw new Error(`Snapcraft Channel '${channel}' is unsupported for builds targetting the '${base}' Base Snap.`);
+}
+
 // CONCATENATED MODULE: ./lib/build.js
 // -*- mode: javascript; js-indent-level: 2 -*-
 var build_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -171,6 +195,7 @@ var build_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _ar
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
 
 
 
@@ -230,8 +255,8 @@ class SnapcraftBuilder {
             if (this.includeBuildInfo) {
                 env['SNAPCRAFT_BUILD_INFO'] = '1';
             }
-            if (this.snapcraftChannel) {
-                env['USE_SNAPCRAFT_CHANNEL'] = this.snapcraftChannel;
+            if (this.snapcraftChannel !== '') {
+                env['USE_SNAPCRAFT_CHANNEL'] = getChannel(base, this.snapcraftChannel);
             }
             let dockerArgs = [];
             if (this.architecture in platforms) {
@@ -312,13 +337,14 @@ var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arg
 
 
 function run() {
+    var _a;
     return main_awaiter(this, void 0, void 0, function* () {
         try {
             if (external_os_.platform() !== 'linux') {
                 throw new Error(`Only supported on linux platform`);
             }
             const path = core.getInput('path');
-            const buildInfo = (core.getInput('build-info') || 'true').toUpperCase() === 'TRUE';
+            const buildInfo = ((_a = core.getInput('build-info')) !== null && _a !== void 0 ? _a : 'true').toUpperCase() === 'TRUE';
             core.info(`Building Snapcraft project in "${path}"...`);
             const snapcraftChannel = core.getInput('snapcraft-channel');
             const snapcraftArgs = core.getInput('snapcraft-args');
@@ -330,7 +356,9 @@ function run() {
             core.setOutput('snap', snap);
         }
         catch (error) {
-            core.setFailed(error.message);
+            if (error instanceof Error) {
+                core.setFailed(error.message);
+            }
         }
     });
 }
@@ -6136,6 +6164,6 @@ module.exports = require("util");
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(154);
+/******/ 	return __webpack_require__(290);
 /******/ })()
 ;
