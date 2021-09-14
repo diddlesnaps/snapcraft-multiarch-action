@@ -9,6 +9,8 @@ import * as exec from '@actions/exec'
 import * as build from '../src/build'
 import * as tools from '../src/tools'
 
+const default_base = 'core20'
+
 afterEach(() => {
   jest.restoreAllMocks()
 })
@@ -21,27 +23,27 @@ test('SnapcraftBuilder expands tilde in project root', () => {
   expect(builder.projectRoot).toBe(path.join(os.homedir(), 'foo/bar'))
 })
 
-for (const [base, arch] of [
-  ['core'],
-  ['core', 'amd64'],
-  ['core', 'i386'],
-  ['core', 'arm64'],
-  ['core', 'armhf'],
-  ['core', 'ppc64el'],
-  ['core18'],
-  ['core18', 'amd64'],
-  ['core18', 'i386'],
-  ['core18', 'arm64'],
-  ['core18', 'armhf'],
-  ['core18', 'ppc64el'],
-  ['core18', 's390x'],
-  ['core20'],
-  ['core20', 'amd64'],
-  ['core20', 'i386'],
-  ['core20', 'arm64'],
-  ['core20', 'armhf'],
-  ['core20', 'ppc64el'],
-  ['core20', 's390x']
+for (const [base, arch, channel] of [
+  ['core', '', '4.x/stable'],
+  ['core', 'amd64', '4.x/stable'],
+  ['core', 'i386', '4.x/stable'],
+  ['core', 'arm64', '4.x/stable'],
+  ['core', 'armhf', '4.x/stable'],
+  ['core', 'ppc64el', '4.x/stable'],
+  ['core18', '', '5.x/stable'],
+  ['core18', 'amd64', '5.x/stable'],
+  ['core18', 'i386', '5.x/stable'],
+  ['core18', 'arm64', '5.x/stable'],
+  ['core18', 'armhf', '5.x/stable'],
+  ['core18', 'ppc64el', '5.x/stable'],
+  ['core18', 's390x', '5.x/stable'],
+  ['core20', '', 'stable'],
+  ['core20', 'amd64', 'stable'],
+  ['core20', 'i386', 'stable'],
+  ['core20', 'arm64', 'stable'],
+  ['core20', 'armhf', 'stable'],
+  ['core20', 'ppc64el', 'stable'],
+  ['core20', 's390x', 'stable']
 ]) {
   test(`SnapcraftBuilder.build runs a snap build with base: ${base}; and arch: ${arch}`, async () => {
     expect.assertions(4)
@@ -103,7 +105,7 @@ for (const [base, arch] of [
         '--env',
         'SNAPCRAFT_BUILD_INFO=1',
         '--env',
-        'USE_SNAPCRAFT_CHANNEL=stable',
+        `USE_SNAPCRAFT_CHANNEL=${channel}`,
         `diddledan/snapcraft:${base}`,
         'snapcraft'
       ],
@@ -125,7 +127,7 @@ test('SnapcraftBuilder.build can disable build info', async () => {
     .mockImplementation(async (): Promise<void> => {})
   const detectBaseMock = jest
     .spyOn(tools, 'detectBase')
-    .mockImplementation(async (projectRoot: string): Promise<string> => 'core')
+    .mockImplementation(async (projectRoot: string): Promise<string> => default_base)
   const execMock = jest.spyOn(exec, 'exec').mockImplementation(
     async (program: string, args?: string[]): Promise<number> => {
       return 0
@@ -154,7 +156,7 @@ test('SnapcraftBuilder.build can disable build info', async () => {
       `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
       '--env',
       'USE_SNAPCRAFT_CHANNEL=stable',
-      'diddledan/snapcraft:core',
+      `diddledan/snapcraft:${default_base}`,
       'snapcraft'
     ],
     {
@@ -174,7 +176,7 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
     .mockImplementation(async (): Promise<void> => {})
   const detectBaseMock = jest
     .spyOn(tools, 'detectBase')
-    .mockImplementation(async (projectRoot: string): Promise<string> => 'core')
+    .mockImplementation(async (projectRoot: string): Promise<string> => default_base)
   const execMock = jest.spyOn(exec, 'exec').mockImplementation(
     async (program: string, args?: string[]): Promise<number> => {
       return 0
@@ -210,7 +212,7 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
       `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
       '--env',
       'USE_SNAPCRAFT_CHANNEL=stable',
-      'diddledan/snapcraft:core',
+      `diddledan/snapcraft:${default_base}`,
       'snapcraft',
       '--foo',
       '--bar'

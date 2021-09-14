@@ -7,14 +7,14 @@ export function getChannel(base: string, channel: string): string {
             if (channel.startsWith('5.x/')) {
                 return channel
             }
-            if (channel in ['stable', 'candidate', 'beta', 'edge']) {
+            if (['stable', 'candidate', 'beta', 'edge'].includes(channel)) {
                 return `5.x/${channel}`
             }
         case 'core':
             if (channel.startsWith('4.x/')) {
                 return channel;
             }
-            if (channel in ['stable', 'candidate', 'beta', 'edge']) {
+            if (['stable', 'candidate', 'beta', 'edge'].includes(channel)) {
                 return `4.x/${channel}`
             }
     }

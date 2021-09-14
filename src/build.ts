@@ -88,7 +88,7 @@ export class SnapcraftBuilder {
     if (this.includeBuildInfo) {
       env['SNAPCRAFT_BUILD_INFO'] = '1'
     }
-    if (this.snapcraftChannel) {
+    if (this.snapcraftChannel != '') {
       env['USE_SNAPCRAFT_CHANNEL'] = getChannel(base, this.snapcraftChannel);
     }
 
