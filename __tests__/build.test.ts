@@ -126,7 +126,9 @@ test('SnapcraftBuilder.build can disable build info', async () => {
     .mockImplementation(async (): Promise<void> => {})
   const detectBaseMock = jest
     .spyOn(tools, 'detectBase')
-    .mockImplementation(async (projectRoot: string): Promise<string> => default_base)
+    .mockImplementation(
+      async (projectRoot: string): Promise<string> => default_base
+    )
   const execMock = jest.spyOn(exec, 'exec').mockImplementation(
     async (program: string, args?: string[]): Promise<number> => {
       return 0
@@ -175,7 +177,9 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
     .mockImplementation(async (): Promise<void> => {})
   const detectBaseMock = jest
     .spyOn(tools, 'detectBase')
-    .mockImplementation(async (projectRoot: string): Promise<string> => default_base)
+    .mockImplementation(
+      async (projectRoot: string): Promise<string> => default_base
+    )
   const execMock = jest.spyOn(exec, 'exec').mockImplementation(
     async (program: string, args?: string[]): Promise<number> => {
       return 0

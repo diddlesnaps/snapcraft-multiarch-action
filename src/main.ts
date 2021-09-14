@@ -32,8 +32,10 @@ async function run(): Promise<void> {
     await builder.build()
     const snap = await builder.outputSnap()
     core.setOutput('snap', snap)
-  } catch (error: any) {
-    core.setFailed(error.message)
+  } catch (error) {
+    if (error instanceof Error) {
+      core.setFailed(error.message)
+    }
   }
 }
 
