@@ -8,6 +8,7 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as tools from './tools'
 import {parseArgs} from './argparser'
+import { getChannel } from './channel-matrix'
 
 interface ImageInfo {
   'build-request-id'?: string
@@ -88,7 +89,7 @@ export class SnapcraftBuilder {
       env['SNAPCRAFT_BUILD_INFO'] = '1'
     }
     if (this.snapcraftChannel) {
-      env['USE_SNAPCRAFT_CHANNEL'] = this.snapcraftChannel
+      env['USE_SNAPCRAFT_CHANNEL'] = getChannel(base, this.snapcraftChannel);
     }
 
     let dockerArgs: string[] = []

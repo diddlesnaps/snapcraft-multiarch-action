@@ -14,7 +14,7 @@ async function run(): Promise<void> {
 
     const path = core.getInput('path')
     const buildInfo =
-      (core.getInput('build-info') || 'true').toUpperCase() === 'TRUE'
+      (core.getInput('build-info') ?? 'true').toUpperCase() === 'TRUE'
     core.info(`Building Snapcraft project in "${path}"...`)
     const snapcraftChannel = core.getInput('snapcraft-channel')
     const snapcraftArgs = core.getInput('snapcraft-args')
@@ -32,7 +32,7 @@ async function run(): Promise<void> {
     await builder.build()
     const snap = await builder.outputSnap()
     core.setOutput('snap', snap)
-  } catch (error) {
+  } catch (error: any) {
     core.setFailed(error.message)
   }
 }
