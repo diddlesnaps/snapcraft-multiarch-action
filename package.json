@@ -13,6 +13,9 @@
     "test": "jest",
     "all": "run-s build format lint pack test"
   },
+  "pre-commit": [
+    "all"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/diddlesnaps/snapcraft-action.git"
@@ -41,6 +44,7 @@
     "jest-circus": "^26.5.1",
     "js-yaml": "^3.14.0",
     "npm-run-all2": "^5.0.2",
+    "pre-commit": "^1.2.2",
     "prettier": "^2.1.2",
     "ts-jest": "^26.4.1",
     "typescript": "^4.0.3"
