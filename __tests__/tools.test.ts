@@ -8,23 +8,6 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
-test('ensureDisabledAppArmorRules creates new AppArmor namespace', async () => {
-  expect.assertions(1)
-
-  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
-    async (program: string, args?: string[]): Promise<number> => {
-      return 0
-    }
-  )
-
-  await tools.ensureDisabledAppArmorRules()
-
-  expect(execMock).toHaveBeenNthCalledWith(1, 'sudo', [
-    'mkdir',
-    '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
-  ])
-})
-
 test('ensureDockerExperimental is no-op if experimental already set', async () => {
   expect.assertions(3)
 

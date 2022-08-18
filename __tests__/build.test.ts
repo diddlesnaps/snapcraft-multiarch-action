@@ -45,22 +45,21 @@ for (const [base, arch, channel] of [
   ['core20', 's390x', 'stable']
 ]) {
   test(`SnapcraftBuilder.build runs a snap build with base: ${base}; and arch: ${arch}`, async () => {
-    expect.assertions(4)
+    expect.assertions(3)
 
-    const ensureDisabledAppArmorRulesMock = jest
-      .spyOn(tools, 'ensureDisabledAppArmorRules')
-      .mockImplementation(async (): Promise<void> => {})
     const ensureDockerExperimentalMock = jest
       .spyOn(tools, 'ensureDockerExperimental')
-      .mockImplementation(async (): Promise<void> => {})
+      .mockImplementation(async (): Promise<void> => Promise.resolve())
     const detectBaseMock = jest
       .spyOn(tools, 'detectBase')
-      .mockImplementation(async (projectRoot: string): Promise<string> => base)
-    const execMock = jest.spyOn(exec, 'exec').mockImplementation(
-      async (program: string, args?: string[]): Promise<number> => {
-        return 0
-      }
-    )
+      .mockImplementation(
+        async (projectRoot: string): Promise<string> => Promise.resolve(base)
+      )
+    const execMock = jest
+      .spyOn(exec, 'exec')
+      .mockImplementation(
+        async (program: string, args?: string[]): Promise<number> => 0
+      )
     process.env['GITHUB_REPOSITORY'] = 'user/repo'
     process.env['GITHUB_RUN_ID'] = '42'
 
@@ -80,7 +79,6 @@ for (const [base, arch, channel] of [
       platform = ['--platform', build.platforms[arch]]
     }
 
-    expect(ensureDisabledAppArmorRulesMock).toHaveBeenCalled()
     expect(ensureDockerExperimentalMock).toHaveBeenCalled()
     expect(detectBaseMock).toHaveBeenCalled()
     expect(execMock).toHaveBeenCalledWith(
@@ -90,8 +88,6 @@ for (const [base, arch, channel] of [
         '--rm',
         '--tty',
         '--privileged',
-        '--security-opt',
-        'apparmor=:docker-snapcraft:unconfined',
         '--volume',
         `${process.cwd()}/${projectDir}:/data`,
         '--workdir',
@@ -118,22 +114,19 @@ for (const [base, arch, channel] of [
 test('SnapcraftBuilder.build can disable build info', async () => {
   expect.assertions(1)
 
-  const ensureDisabledAppArmorRulesMock = jest
-    .spyOn(tools, 'ensureDisabledAppArmorRules')
-    .mockImplementation(async (): Promise<void> => {})
   const ensureDockerExperimentalMock = jest
     .spyOn(tools, 'ensureDockerExperimental')
-    .mockImplementation(async (): Promise<void> => {})
+    .mockImplementation(async (): Promise<void> => Promise.resolve())
   const detectBaseMock = jest
     .spyOn(tools, 'detectBase')
     .mockImplementation(
       async (projectRoot: string): Promise<string> => default_base
     )
-  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
-    async (program: string, args?: string[]): Promise<number> => {
-      return 0
-    }
-  )
+  const execMock = jest
+    .spyOn(exec, 'exec')
+    .mockImplementation(
+      async (program: string, args?: string[]): Promise<number> => 0
+    )
 
   const builder = new build.SnapcraftBuilder('.', false, 'stable', '', '', '')
   await builder.build()
@@ -145,8 +138,6 @@ test('SnapcraftBuilder.build can disable build info', async () => {
       '--rm',
       '--tty',
       '--privileged',
-      '--security-opt',
-      'apparmor=:docker-snapcraft:unconfined',
       '--volume',
       `${process.cwd()}:/data`,
       '--workdir',
@@ -169,22 +160,19 @@ test('SnapcraftBuilder.build can disable build info', async () => {
 test('SnapcraftBuilder.build can pass additional arguments', async () => {
   expect.assertions(1)
 
-  const ensureDisabledAppArmorRulesMock = jest
-    .spyOn(tools, 'ensureDisabledAppArmorRules')
-    .mockImplementation(async (): Promise<void> => {})
   const ensureDockerExperimentalMock = jest
     .spyOn(tools, 'ensureDockerExperimental')
-    .mockImplementation(async (): Promise<void> => {})
+    .mockImplementation(async (): Promise<void> => Promise.resolve())
   const detectBaseMock = jest
     .spyOn(tools, 'detectBase')
     .mockImplementation(
       async (projectRoot: string): Promise<string> => default_base
     )
-  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
-    async (program: string, args?: string[]): Promise<number> => {
-      return 0
-    }
-  )
+  const execMock = jest
+    .spyOn(exec, 'exec')
+    .mockImplementation(
+      async (program: string, args?: string[]): Promise<number> => 0
+    )
 
   const builder = new build.SnapcraftBuilder(
     '.',
@@ -203,8 +191,6 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
       '--rm',
       '--tty',
       '--privileged',
-      '--security-opt',
-      'apparmor=:docker-snapcraft:unconfined',
       '--volume',
       `${process.cwd()}:/data`,
       '--workdir',
