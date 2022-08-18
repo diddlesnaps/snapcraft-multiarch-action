@@ -101,3 +101,8 @@ lib/**/*
 # Ignore backup files
 *~
 *.swp
+
+test-projects/*/parts
+test-projects/*/stage
+test-projects/*/prime
+test-projects/*/*.snap
