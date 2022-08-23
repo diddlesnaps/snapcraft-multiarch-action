@@ -1,6 +1,6 @@
 name: 'Snapcraft Build'
 description: 'Build a Snapcraft project for multiple architectures'
-author: 'Daniel Llewellyn'
+author: 'Dani Llewellyn'
 branding:
   icon: 'package'
   color: 'orange'
@@ -55,6 +55,5 @@ outputs:
   snap:
     description: 'The file name of the resulting snap.'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
-  post: 'dist/index.js'

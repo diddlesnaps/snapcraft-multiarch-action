@@ -67,11 +67,10 @@ export class SnapcraftBuilder {
   }
 
   async build(): Promise<void> {
-    await tools.ensureDisabledAppArmorRules()
     await tools.ensureDockerExperimental()
     const base = await tools.detectBase(this.projectRoot)
 
-    if (!['core', 'core18', 'core20'].includes(base)) {
+    if (!['core', 'core18', 'core20', 'core22'].includes(base)) {
       throw new Error(
         `Your build requires a base that this tool does not support (${base}). 'base' or 'build-base' in your 'snapcraft.yaml' must be one of 'core', 'core18' or 'core20'.`
       )
@@ -108,8 +107,6 @@ export class SnapcraftBuilder {
         '--rm',
         '--tty',
         '--privileged',
-        '--security-opt',
-        'apparmor=:docker-snapcraft:unconfined',
         '--volume',
         `${this.projectRoot}:/data`,
         '--workdir',

@@ -16,13 +16,6 @@ async function haveFile(filePath: string): Promise<boolean> {
   return true
 }
 
-export async function ensureDisabledAppArmorRules(): Promise<void> {
-  await exec.exec('sudo', [
-    'mkdir',
-    '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
-  ])
-}
-
 export async function ensureDockerExperimental(): Promise<void> {
   let json: {[key: string]: string | boolean} = {}
   if (await haveFile(dockerJson)) {

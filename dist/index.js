@@ -3,7 +3,7 @@ module.exports =
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 290:
+/***/ 761:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 // ESM COMPAT FLAG
@@ -12,14 +12,14 @@ __webpack_require__.r(__webpack_exports__);
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __webpack_require__(747);
 
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __webpack_require__(186);
-
 // EXTERNAL MODULE: ./node_modules/@actions/exec/lib/exec.js
 var exec = __webpack_require__(514);
 
 // EXTERNAL MODULE: external "os"
 var external_os_ = __webpack_require__(87);
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __webpack_require__(186);
 
 // EXTERNAL MODULE: external "path"
 var external_path_ = __webpack_require__(622);
@@ -55,14 +55,6 @@ function haveFile(filePath) {
             return false;
         }
         return true;
-    });
-}
-function ensureDisabledAppArmorRules() {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield exec.exec('sudo', [
-            'mkdir',
-            '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
-        ]);
     });
 }
 function ensureDockerExperimental() {
@@ -238,10 +230,9 @@ class SnapcraftBuilder {
     }
     build() {
         return build_awaiter(this, void 0, void 0, function* () {
-            yield ensureDisabledAppArmorRules();
             yield ensureDockerExperimental();
             const base = yield detectBase(this.projectRoot);
-            if (!['core', 'core18', 'core20'].includes(base)) {
+            if (!['core', 'core18', 'core20', 'core22'].includes(base)) {
                 throw new Error(`Your build requires a base that this tool does not support (${base}). 'base' or 'build-base' in your 'snapcraft.yaml' must be one of 'core', 'core18' or 'core20'.`);
             }
             const imageInfo = {
@@ -270,8 +261,6 @@ class SnapcraftBuilder {
                 '--rm',
                 '--tty',
                 '--privileged',
-                '--security-opt',
-                'apparmor=:docker-snapcraft:unconfined',
                 '--volume',
                 `${this.projectRoot}:/data`,
                 '--workdir',
@@ -309,17 +298,6 @@ class SnapcraftBuilder {
     }
 }
 
-// CONCATENATED MODULE: ./lib/state-helper.js
-
-const isPost = !!process.env['STATE_isPost'];
-const tmpDir = process.env['STATE_tmpDir'] || '';
-function setTmpDir(dir) {
-    core.saveState('tmpDir', dir);
-}
-if (!isPost) {
-    core.saveState('isPost', 'true');
-}
-
 // CONCATENATED MODULE: ./lib/main.js
 // -*- mode: javascript; js-indent-level: 2 -*-
 var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -331,8 +309,6 @@ var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arg
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-
-
 
 
 
@@ -362,20 +338,7 @@ function run() {
         }
     });
 }
-function cleanup() {
-    return main_awaiter(this, void 0, void 0, function* () {
-        yield exec.exec('sudo', [
-            'rmdir',
-            '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
-        ]);
-    });
-}
-if (!isPost) {
-    run();
-}
-else {
-    cleanup();
-}
+run();
 
 
 /***/ }),
@@ -6164,6 +6127,6 @@ module.exports = require("util");
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(290);
+/******/ 	return __webpack_require__(761);
 /******/ })()
 ;

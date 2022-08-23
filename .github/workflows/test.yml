@@ -22,24 +22,27 @@ jobs:
           - core
           - core18
           - core20
+          - core22
         arch:
           - ''
           - amd64
-          - i386
           - armhf
           - arm64
           - ppc64el
-        exclude:
-          - base: core20
-            arch: armhf
-          - base: core20
+            #exclude:
+            #  - base: core20
+            #    arch: armhf
+            #  - base: core22
+            #    arch: armhf
+        include:
+          - base: core
+            arch: i386
+          - base: core18
             arch: i386
     runs-on: ubuntu-latest
     steps:
     - uses: docker/setup-qemu-action@v1
-      with:
-        image: tonistiigi/binfmt@sha256:df15403e06a03c2f461c1f7938b171fda34a5849eb63a70e2a2109ed5a778bde
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: ./
       id: snapcraft
       with:

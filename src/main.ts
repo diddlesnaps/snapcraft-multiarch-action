@@ -2,9 +2,7 @@
 
 import * as os from 'os'
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
 import {SnapcraftBuilder} from './build'
-import * as stateHelper from './state-helper'
 
 async function run(): Promise<void> {
   try {
@@ -39,15 +37,4 @@ async function run(): Promise<void> {
   }
 }
 
-async function cleanup(): Promise<void> {
-  await exec.exec('sudo', [
-    'rmdir',
-    '/sys/kernel/security/apparmor/policy/namespaces/docker-snapcraft'
-  ])
-}
-
-if (!stateHelper.isPost) {
-  run()
-} else {
-  cleanup()
-}
+run()
