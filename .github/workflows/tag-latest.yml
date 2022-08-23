@@ -10,10 +10,8 @@ jobs:
   run-tag-latest:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: Actions-R-Us/actions-tagger@latest
         with:
           publish_latest_tag: true
           prefer_branch_releases: false
-        env:
-          GITHUB_TOKEN: "${{ github.token }}"

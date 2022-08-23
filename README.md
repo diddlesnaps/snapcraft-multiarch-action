@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: diddlesnaps/snapcraft-multiarch-action@v1
 ```
 
@@ -65,7 +65,7 @@ jobs:
         - ppc64el
         - s390x
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: docker/setup-qemu-action@v1
     - uses: diddlesnaps/snapcraft-multiarch-action@v1
       with:
@@ -76,8 +76,7 @@ notes
 -----
 
 * `s390x` is broken at the moment.
-* `core20` builds against `armhf` are broken at the moment.
-* `core20` builds do not support `i386` architecture because Ubuntu has dropped support for `i386` in Ubuntu 20.04 and later.
+* `core20` & `core22` builds do not support `i386` architecture because Ubuntu has dropped support for `i386` in Ubuntu 20.04 and later.
 * `core` builds do not support `s390x` architecture because Ubuntu does not have support for `s390x` before Ubuntu 18.04.
 
 ## Action inputs
