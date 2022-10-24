@@ -253,11 +253,13 @@ test('SnapcraftBuilder.outputSnap returns the first snap', async () => {
     .mockImplementation(
       async (path: string): Promise<string[]> => ['one.snap', 'two.snap']
     )
-  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
-    async (program: string, args?: string[]): Promise<number> => {
-      return 0
-    }
-  )
+  const execMock = jest
+    .spyOn(exec, 'exec')
+    .mockImplementation(
+      async (program: string, args?: string[]): Promise<number> => {
+        return 0
+      }
+    )
   const warning = jest
     .spyOn(core, 'warning')
     .mockImplementation((_message: string | Error): void => {})
