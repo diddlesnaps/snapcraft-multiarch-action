@@ -54,8 +54,9 @@ interface SnapcraftYaml {
 }
 export async function detectBase(projectRoot: string): Promise<string> {
   const snapcraftFile = await findSnapcraftYaml(projectRoot)
-  const snapcraftYaml: SnapcraftYaml = yaml.safeLoad(
-    await fs.promises.readFile(snapcraftFile, 'utf-8')
+  const snapcraftYaml: SnapcraftYaml = yaml.load(
+    await fs.promises.readFile(snapcraftFile, 'utf-8'),
+    {filename: snapcraftFile}
   ) as SnapcraftYaml
   if (snapcraftYaml === undefined) {
     throw new Error('Cannot parse snapcraft.yaml')
