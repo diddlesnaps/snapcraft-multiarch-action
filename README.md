@@ -17,7 +17,7 @@ jobs:
     - uses: diddlesnaps/snapcraft-multiarch-action@v1
 ```
 
-This will run `snapcraft` using the [snapcraft-container](https://hub.docker.com/r/diddledan/snapcraft)
+This will run `snapcraft` using the [snapcraft-container](https://hub.docker.com/r/diddledani/snapcraft)
 
 On success, the action will set the `snap` output parameter to the
 path of the built snap.  This can be used to save it as an artifact of
