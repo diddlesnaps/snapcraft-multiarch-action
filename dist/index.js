@@ -266,7 +266,7 @@ class SnapcraftBuilder {
                 '--workdir',
                 '/data',
                 ...dockerArgs,
-                `diddledan/snapcraft:${base}`,
+                `diddledani/snapcraft:${base}`,
                 'snapcraft',
                 ...this.snapcraftArgs
             ], {

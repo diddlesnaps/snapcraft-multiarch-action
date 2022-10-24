@@ -101,7 +101,7 @@ for (const [base, arch, channel] of [
         'SNAPCRAFT_BUILD_INFO=1',
         '--env',
         `USE_SNAPCRAFT_CHANNEL=${channel}`,
-        `diddledan/snapcraft:${base}`,
+        `diddledani/snapcraft:${base}`,
         'snapcraft'
       ],
       {
@@ -148,7 +148,7 @@ test('SnapcraftBuilder.build can disable build info', async () => {
       `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
       '--env',
       'USE_SNAPCRAFT_CHANNEL=stable',
-      `diddledan/snapcraft:${default_base}`,
+      `diddledani/snapcraft:${default_base}`,
       'snapcraft'
     ],
     {
@@ -201,7 +201,7 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
       `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
       '--env',
       'USE_SNAPCRAFT_CHANNEL=stable',
-      `diddledan/snapcraft:${default_base}`,
+      `diddledani/snapcraft:${default_base}`,
       'snapcraft',
       '--foo',
       '--bar'
