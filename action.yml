@@ -1,4 +1,4 @@
-name: 'Snapcraft Build'
+name: 'Snapcraft Multiarch Build'
 description: 'Build a Snapcraft project for multiple architectures'
 author: 'Dani Llewellyn'
 branding:
