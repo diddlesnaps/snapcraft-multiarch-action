@@ -25,13 +25,11 @@ test('ensureDockerExperimental is no-op if experimental already set', async () =
       async (filename: fs.PathLike | fs.promises.FileHandle): Promise<Buffer> =>
         Buffer.from(`{"experimental": true}`)
     )
-  const execMock = jest
-    .spyOn(exec, 'exec')
-    .mockImplementation(
-      async (program: string, args?: string[]): Promise<number> => {
-        return 0
-      }
-    )
+  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
+    async (program: string, args?: string[]): Promise<number> => {
+      return 0
+    }
+  )
 
   await tools.ensureDockerExperimental()
 
@@ -43,23 +41,16 @@ test('ensureDockerExperimental is no-op if experimental already set', async () =
 test("ensureDockerExperimental sets experimental mode and restarts docker if configuration file doesn't exist", async () => {
   expect.assertions(3)
 
-  const accessMock = jest
-    .spyOn(fs.promises, 'access')
-    .mockImplementation(
-      async (
-        filename: fs.PathLike,
-        mode?: number | undefined
-      ): Promise<void> => {
-        throw new Error('not found')
-      }
-    )
-  const execMock = jest
-    .spyOn(exec, 'exec')
-    .mockImplementation(
-      async (program: string, args?: string[]): Promise<number> => {
-        return 0
-      }
-    )
+  const accessMock = jest.spyOn(fs.promises, 'access').mockImplementation(
+    async (filename: fs.PathLike, mode?: number | undefined): Promise<void> => {
+      throw new Error('not found')
+    }
+  )
+  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
+    async (program: string, args?: string[]): Promise<number> => {
+      return 0
+    }
+  )
 
   await tools.ensureDockerExperimental()
 
@@ -92,13 +83,11 @@ test('ensureDockerExperimental sets experimental mode and restarts docker if not
       async (filename: fs.PathLike | fs.promises.FileHandle): Promise<Buffer> =>
         Buffer.from(`{}`)
     )
-  const execMock = jest
-    .spyOn(exec, 'exec')
-    .mockImplementation(
-      async (program: string, args?: string[]): Promise<number> => {
-        return 0
-      }
-    )
+  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
+    async (program: string, args?: string[]): Promise<number> => {
+      return 0
+    }
+  )
 
   await tools.ensureDockerExperimental()
 
@@ -132,13 +121,11 @@ test('ensureDockerExperimental sets experimental mode and restarts docker if exp
       async (filename: fs.PathLike | fs.promises.FileHandle): Promise<Buffer> =>
         Buffer.from(`{"experimental": false}`)
     )
-  const execMock = jest
-    .spyOn(exec, 'exec')
-    .mockImplementation(
-      async (program: string, args?: string[]): Promise<number> => {
-        return 0
-      }
-    )
+  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
+    async (program: string, args?: string[]): Promise<number> => {
+      return 0
+    }
+  )
 
   await tools.ensureDockerExperimental()
 
