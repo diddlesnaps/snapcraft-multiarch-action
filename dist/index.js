@@ -241,7 +241,6 @@ class SnapcraftBuilder {
             };
             // Copy and update environment to pass to snapcraft
             const env = this.environment;
-            env['SNAPCRAFT_BUILD_ENVIRONMENT'] = 'host';
             env['SNAPCRAFT_IMAGE_INFO'] = JSON.stringify(imageInfo);
             if (this.includeBuildInfo) {
                 env['SNAPCRAFT_BUILD_INFO'] = '1';
