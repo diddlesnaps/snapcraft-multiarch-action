@@ -8,7 +8,7 @@ inputs:
   path:
     description: 'The location of the Snapcraft project.  Defaults to the base of the repository'
     default: '.'
-    required: yes
+    required: true
   build-info:
     description: >
       Whether to include build information in the resulting snap.
@@ -21,7 +21,7 @@ inputs:
       Proprietary applications may want to disable this due to
       the information leakage.
     default: 'true'
-    required: no
+    required: false
   snapcraft-channel:
     description: >
       The Snapcraft channel to use
@@ -30,7 +30,7 @@ inputs:
       to build the project.  This parameter can be used to instead
       select a different channel such as beta, candidate, or edge.
     default: 'stable'
-    required: no
+    required: false
   snapcraft-args:
     description: >
       Additional arguments to pass to Snapcraft
@@ -38,7 +38,7 @@ inputs:
       Some experimental Snapcraft features are disabled by default and
       must be turned on via a `--enable-experimental-*` command line
       argument.  This parameter can be used to turn on such features.
-    required: no
+    required: false
   architecture:
     description: >
       The architecture to build with Snapcraft
@@ -50,7 +50,7 @@ inputs:
       You may only specify one architecture at a time so it's best to
       combine this with the build matrix feature of GitHub Actions.
     default: 'amd64'
-    required: yes
+    required: true
 outputs:
   snap:
     description: 'The file name of the resulting snap.'
