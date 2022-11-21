@@ -94,8 +94,6 @@ for (const [base, arch, channel] of [
         '/data',
         ...platform,
         '--env',
-        'SNAPCRAFT_BUILD_ENVIRONMENT=host',
-        '--env',
         `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
         '--env',
         'SNAPCRAFT_BUILD_INFO=1',
@@ -142,8 +140,6 @@ test('SnapcraftBuilder.build can disable build info', async () => {
       `${process.cwd()}:/data`,
       '--workdir',
       '/data',
-      '--env',
-      'SNAPCRAFT_BUILD_ENVIRONMENT=host',
       '--env',
       `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
       '--env',
@@ -195,8 +191,6 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
       `${process.cwd()}:/data`,
       '--workdir',
       '/data',
-      '--env',
-      'SNAPCRAFT_BUILD_ENVIRONMENT=host',
       '--env',
       `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
       '--env',
@@ -253,13 +247,11 @@ test('SnapcraftBuilder.outputSnap returns the first snap', async () => {
     .mockImplementation(
       async (path: string): Promise<string[]> => ['one.snap', 'two.snap']
     )
-  const execMock = jest
-    .spyOn(exec, 'exec')
-    .mockImplementation(
-      async (program: string, args?: string[]): Promise<number> => {
-        return 0
-      }
-    )
+  const execMock = jest.spyOn(exec, 'exec').mockImplementation(
+    async (program: string, args?: string[]): Promise<number> => {
+      return 0
+    }
+  )
   const warning = jest
     .spyOn(core, 'warning')
     .mockImplementation((_message: string | Error): void => {})
