@@ -94,6 +94,22 @@ parameter:
         path: path-to-snapcraft-project
 ```
 
+### `use-podman`
+
+By default, this action will use Docker. If you are running a
+self-hosted GitHub Actions Runner then you might prefer to use Podman
+instead. This switch allows you to request experimental support for
+Podman to be used.
+
+Note that when using Podman your build cannot target a CPU architecture
+that is different to the host your runner is based upon. This is a
+limitation of Podman. For example, you will need an ARM64 host to build
+an ARM64 Snap Package, when using Podman builds. Multiarch builds, where
+you build an i386 Snap on an AMD64 host or an ARMHF Snap on an ARM64
+host, might be possible but are untested - your mileage might vary.
+
+Set `use-podman` to `true` to use Podman instead of Docker.
+
 ### `build-info`
 
 By default, the action will tell Snapcraft to include information
