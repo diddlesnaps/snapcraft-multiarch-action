@@ -29,16 +29,23 @@ jobs:
           - armhf
           - arm64
           - ppc64el
-            #exclude:
-            #  - base: core20
-            #    arch: armhf
-            #  - base: core22
-            #    arch: armhf
+        usePodman:
+          - ''
+          - 'true'
+          - 'false'
         include:
           - base: core
             arch: i386
+            usePodman: 'false'
+          - base: core
+            arch: i386
+            usePodman: 'true'
           - base: core18
             arch: i386
+            usePodman: 'false'
+          - base: core18
+            arch: i386
+            usePodman: 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: docker/setup-qemu-action@v2
@@ -48,3 +55,4 @@ jobs:
       with:
         path: './test-projects/${{ matrix.base }}'
         architecture: ${{ matrix.arch }}
+        use-podman: ${{ matrix.usePodman }}

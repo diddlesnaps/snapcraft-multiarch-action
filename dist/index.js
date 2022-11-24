@@ -8139,12 +8139,13 @@ const platforms = {
     s390x: 'linux/s390x'
 };
 class SnapcraftBuilder {
-    constructor(projectRoot, includeBuildInfo, snapcraftChannel, snapcraftArgs, architecture, environment) {
+    constructor(projectRoot, includeBuildInfo, snapcraftChannel, snapcraftArgs, architecture, environment, usePodman) {
         this.projectRoot = expandHome(projectRoot);
         this.includeBuildInfo = includeBuildInfo;
         this.snapcraftChannel = snapcraftChannel;
         this.snapcraftArgs = parseArgs(snapcraftArgs);
         this.architecture = architecture;
+        this.usePodman = usePodman;
         const envs = parseArgs(environment);
         const envKV = {};
         for (const env of envs) {
@@ -8155,7 +8156,9 @@ class SnapcraftBuilder {
     }
     build() {
         return build_awaiter(this, void 0, void 0, function* () {
-            yield ensureDockerExperimental();
+            if (!this.usePodman) {
+                yield ensureDockerExperimental();
+            }
             const base = yield detectBase(this.projectRoot);
             if (!['core', 'core18', 'core20', 'core22'].includes(base)) {
                 throw new Error(`Your build requires a base that this tool does not support (${base}). 'base' or 'build-base' in your 'snapcraft.yaml' must be one of 'core', 'core18' or 'core20'.`);
@@ -8174,13 +8177,20 @@ class SnapcraftBuilder {
                 env['USE_SNAPCRAFT_CHANNEL'] = getChannel(base, this.snapcraftChannel);
             }
             let dockerArgs = [];
-            if (this.architecture in platforms) {
+            if (this.architecture in platforms && !this.usePodman) {
                 dockerArgs = dockerArgs.concat('--platform', platforms[this.architecture]);
             }
             for (const key in env) {
                 dockerArgs = dockerArgs.concat('--env', `${key}=${env[key]}`);
             }
-            yield exec.exec('docker', [
+            let command = 'docker';
+            let containerImage = `diddledani/snapcraft:${base}`;
+            if (this.usePodman) {
+                command = 'sudo podman';
+                containerImage = `docker.io/${containerImage}`;
+                dockerArgs = dockerArgs.concat('--systemd', 'always');
+            }
+            yield exec.exec(command, [
                 'run',
                 '--rm',
                 '--tty',
@@ -8190,7 +8200,7 @@ class SnapcraftBuilder {
                 '--workdir',
                 '/data',
                 ...dockerArgs,
-                `diddledani/snapcraft:${base}`,
+                containerImage,
                 'snapcraft',
                 ...this.snapcraftArgs
             ], {
@@ -8237,20 +8247,21 @@ var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arg
 
 
 function run() {
-    var _a;
+    var _a, _b;
     return main_awaiter(this, void 0, void 0, function* () {
         try {
             if (external_os_.platform() !== 'linux') {
                 throw new Error(`Only supported on linux platform`);
             }
             const path = core.getInput('path');
-            const buildInfo = ((_a = core.getInput('build-info')) !== null && _a !== void 0 ? _a : 'true').toUpperCase() === 'TRUE';
+            const usePodman = ((_a = core.getInput('use-podman')) !== null && _a !== void 0 ? _a : 'true').toUpperCase() === 'TRUE';
+            const buildInfo = ((_b = core.getInput('build-info')) !== null && _b !== void 0 ? _b : 'true').toUpperCase() === 'TRUE';
             core.info(`Building Snapcraft project in "${path}"...`);
             const snapcraftChannel = core.getInput('snapcraft-channel');
             const snapcraftArgs = core.getInput('snapcraft-args');
             const architecture = core.getInput('architecture');
             const environment = core.getInput('environment');
-            const builder = new SnapcraftBuilder(path, buildInfo, snapcraftChannel, snapcraftArgs, architecture, environment);
+            const builder = new SnapcraftBuilder(path, buildInfo, snapcraftChannel, snapcraftArgs, architecture, environment, usePodman);
             yield builder.build();
             const snap = yield builder.outputSnap();
             core.setOutput('snap', snap);
