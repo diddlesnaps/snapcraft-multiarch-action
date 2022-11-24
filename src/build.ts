@@ -42,6 +42,7 @@ export class SnapcraftBuilder {
   snapcraftArgs: string[]
   architecture: string
   environment: {[key: string]: string}
+  usePodman: boolean
 
   constructor(
     projectRoot: string,
@@ -49,13 +50,15 @@ export class SnapcraftBuilder {
     snapcraftChannel: string,
     snapcraftArgs: string,
     architecture: string,
-    environment: string
+    environment: string,
+    usePodman: boolean
   ) {
     this.projectRoot = expandHome(projectRoot)
     this.includeBuildInfo = includeBuildInfo
     this.snapcraftChannel = snapcraftChannel
     this.snapcraftArgs = parseArgs(snapcraftArgs)
     this.architecture = architecture
+    this.usePodman = usePodman
 
     const envs = parseArgs(environment)
     const envKV: {[key: string]: string} = {}
@@ -67,7 +70,9 @@ export class SnapcraftBuilder {
   }
 
   async build(): Promise<void> {
-    await tools.ensureDockerExperimental()
+    if (!this.usePodman) {
+      await tools.ensureDockerExperimental()
+    }
     const base = await tools.detectBase(this.projectRoot)
 
     if (!['core', 'core18', 'core20', 'core22'].includes(base)) {
@@ -91,7 +96,7 @@ export class SnapcraftBuilder {
     }
 
     let dockerArgs: string[] = []
-    if (this.architecture in platforms) {
+    if (this.architecture in platforms && !this.usePodman) {
       dockerArgs = dockerArgs.concat('--platform', platforms[this.architecture])
     }
 
@@ -99,8 +104,15 @@ export class SnapcraftBuilder {
       dockerArgs = dockerArgs.concat('--env', `${key}=${env[key]}`)
     }
 
+    let command = 'docker'
+    let containerImage = `diddledani/snapcraft:${base}`
+    if (this.usePodman) {
+      command = 'sudo podman'
+      containerImage = `docker.io/${containerImage}`
+      dockerArgs = dockerArgs.concat('--systemd', 'always')
+    }
     await exec.exec(
-      'docker',
+      command,
       [
         'run',
         '--rm',
@@ -111,7 +123,7 @@ export class SnapcraftBuilder {
         '--workdir',
         '/data',
         ...dockerArgs,
-        `diddledani/snapcraft:${base}`,
+        containerImage,
         'snapcraft',
         ...this.snapcraftArgs
       ],

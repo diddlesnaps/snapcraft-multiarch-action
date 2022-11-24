@@ -15,36 +15,56 @@ afterEach(() => {
 })
 
 test('SnapcraftBuilder expands tilde in project root', () => {
-  let builder = new build.SnapcraftBuilder('~', true, 'stable', '', '', '')
+  let builder = new build.SnapcraftBuilder(
+    '~',
+    true,
+    'stable',
+    '',
+    '',
+    '',
+    false
+  )
   expect(builder.projectRoot).toBe(os.homedir())
 
-  builder = new build.SnapcraftBuilder('~/foo/bar', true, 'stable', '', '', '')
+  builder = new build.SnapcraftBuilder(
+    '~/foo/bar',
+    true,
+    'stable',
+    '',
+    '',
+    '',
+    false
+  )
   expect(builder.projectRoot).toBe(path.join(os.homedir(), 'foo/bar'))
 })
 
-for (const [base, arch, channel] of [
-  ['core', '', '4.x/stable'],
-  ['core', 'amd64', '4.x/stable'],
-  ['core', 'i386', '4.x/stable'],
-  ['core', 'arm64', '4.x/stable'],
-  ['core', 'armhf', '4.x/stable'],
-  ['core', 'ppc64el', '4.x/stable'],
-  ['core18', '', '5.x/stable'],
-  ['core18', 'amd64', '5.x/stable'],
-  ['core18', 'i386', '5.x/stable'],
-  ['core18', 'arm64', '5.x/stable'],
-  ['core18', 'armhf', '5.x/stable'],
-  ['core18', 'ppc64el', '5.x/stable'],
-  ['core18', 's390x', '5.x/stable'],
-  ['core20', '', 'stable'],
-  ['core20', 'amd64', 'stable'],
-  ['core20', 'i386', 'stable'],
-  ['core20', 'arm64', 'stable'],
-  ['core20', 'armhf', 'stable'],
-  ['core20', 'ppc64el', 'stable'],
-  ['core20', 's390x', 'stable']
-]) {
-  test(`SnapcraftBuilder.build runs a snap build with base: ${base}; and arch: ${arch}`, async () => {
+let matrix: [string, string, string][] = []
+for (const base of ['core', 'core18', 'core20', 'core22']) {
+  for (const arch of [
+    '',
+    'amd64',
+    'arm64',
+    'armhf',
+    'i386',
+    'ppc64el',
+    's390x'
+  ]) {
+    let channel = ''
+    switch (base) {
+      case 'core':
+        channel = '4.x/stable'
+        break
+      case 'core18':
+        channel = '5.x/stable'
+        break
+      default:
+        channel = 'stable'
+    }
+    matrix.push([base, arch, channel])
+  }
+}
+for (const [base, arch, channel] of matrix) {
+  test(`SnapcraftBuilder.build runs a snap build using Docker with base: ${base}; and arch: ${arch}`, async () => {
     expect.assertions(3)
 
     const ensureDockerExperimentalMock = jest
@@ -70,7 +90,8 @@ for (const [base, arch, channel] of [
       'stable',
       '',
       arch,
-      ''
+      '',
+      false
     )
     await builder.build()
 
@@ -107,6 +128,67 @@ for (const [base, arch, channel] of [
       }
     )
   })
+
+  test(`SnapcraftBuilder.build runs a snap build using Podman with base: ${base}; and arch: ${arch}`, async () => {
+    expect.assertions(3)
+
+    const ensureDockerExperimentalMock = jest
+      .spyOn(tools, 'ensureDockerExperimental')
+      .mockImplementation(async (): Promise<void> => Promise.resolve())
+    const detectBaseMock = jest
+      .spyOn(tools, 'detectBase')
+      .mockImplementation(
+        async (projectRoot: string): Promise<string> => Promise.resolve(base)
+      )
+    const execMock = jest
+      .spyOn(exec, 'exec')
+      .mockImplementation(
+        async (program: string, args?: string[]): Promise<number> => 0
+      )
+    process.env['GITHUB_REPOSITORY'] = 'user/repo'
+    process.env['GITHUB_RUN_ID'] = '42'
+
+    const projectDir = 'project-root'
+    const builder = new build.SnapcraftBuilder(
+      projectDir,
+      true,
+      'stable',
+      '',
+      arch,
+      '',
+      true
+    )
+    await builder.build()
+
+    expect(ensureDockerExperimentalMock).not.toHaveBeenCalled()
+    expect(detectBaseMock).toHaveBeenCalled()
+    expect(execMock).toHaveBeenCalledWith(
+      'sudo podman',
+      [
+        'run',
+        '--rm',
+        '--tty',
+        '--privileged',
+        '--volume',
+        `${process.cwd()}/${projectDir}:/data`,
+        '--workdir',
+        '/data',
+        '--env',
+        `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
+        '--env',
+        'SNAPCRAFT_BUILD_INFO=1',
+        '--env',
+        `USE_SNAPCRAFT_CHANNEL=${channel}`,
+        '--systemd',
+        'always',
+        `docker.io/diddledani/snapcraft:${base}`,
+        'snapcraft'
+      ],
+      {
+        cwd: `${process.cwd()}/${projectDir}`
+      }
+    )
+  })
 }
 
 test('SnapcraftBuilder.build can disable build info', async () => {
@@ -126,7 +208,15 @@ test('SnapcraftBuilder.build can disable build info', async () => {
       async (program: string, args?: string[]): Promise<number> => 0
     )
 
-  const builder = new build.SnapcraftBuilder('.', false, 'stable', '', '', '')
+  const builder = new build.SnapcraftBuilder(
+    '.',
+    false,
+    'stable',
+    '',
+    '',
+    '',
+    false
+  )
   await builder.build()
 
   expect(execMock).toHaveBeenCalledWith(
@@ -176,7 +266,8 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
     'stable',
     '--foo --bar',
     '',
-    ''
+    '',
+    false
   )
   await builder.build()
 
@@ -214,7 +305,8 @@ test('SnapcraftBuilder.outputSnap fails if there are no snaps', async () => {
     'stable',
     '',
     '',
-    ''
+    '',
+    false
   )
 
   const readdir = jest
@@ -239,7 +331,8 @@ test('SnapcraftBuilder.outputSnap returns the first snap', async () => {
     'stable',
     '',
     '',
-    ''
+    '',
+    false
   )
 
   const readdir = jest

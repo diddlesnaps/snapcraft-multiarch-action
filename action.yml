@@ -6,9 +6,22 @@ branding:
   color: 'orange'
 inputs:
   path:
-    description: 'The location of the Snapcraft project.  Defaults to the base of the repository'
+    description: >
+      The location of the Snapcraft project.
+      
+      Defaults to the base of the repository
     default: '.'
     required: true
+  use-podman:
+    description: >
+      Use Podman instead of Docker (experimental)
+
+      You cannot build for foreign architectures via binfmt using Podman.
+      Therefore, this is best used when you are using a self-hosted runner
+      that has the correct target architecture. Using the GitHub hosted
+      runners you can only build for x86_64/amd64 with Podman.
+    default: 'false'
+    required: false
   build-info:
     description: >
       Whether to include build information in the resulting snap.

@@ -11,6 +11,8 @@ async function run(): Promise<void> {
     }
 
     const path = core.getInput('path')
+    const usePodman =
+      (core.getInput('use-podman') ?? 'true').toUpperCase() === 'TRUE'
     const buildInfo =
       (core.getInput('build-info') ?? 'true').toUpperCase() === 'TRUE'
     core.info(`Building Snapcraft project in "${path}"...`)
@@ -25,7 +27,8 @@ async function run(): Promise<void> {
       snapcraftChannel,
       snapcraftArgs,
       architecture,
-      environment
+      environment,
+      usePodman
     )
     await builder.build()
     const snap = await builder.outputSnap()
