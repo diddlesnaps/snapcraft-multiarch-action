@@ -7957,77 +7957,64 @@ var jsYaml = {
 
 ;// CONCATENATED MODULE: ./lib/tools.js
 // -*- mode: javascript; js-indent-level: 2 -*-
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
 
 const dockerJson = '/etc/docker/daemon.json';
-function haveFile(filePath) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            yield external_fs_.promises.access(filePath, external_fs_.constants.R_OK);
-        }
-        catch (err) {
-            return false;
-        }
-        return true;
-    });
+async function haveFile(filePath) {
+    try {
+        await external_fs_.promises.access(filePath, external_fs_.constants.R_OK);
+    }
+    catch (err) {
+        return false;
+    }
+    return true;
 }
-function ensureDockerExperimental() {
-    return __awaiter(this, void 0, void 0, function* () {
-        let json = {};
-        if (yield haveFile(dockerJson)) {
-            json = JSON.parse(yield external_fs_.promises.readFile(dockerJson, { encoding: 'utf-8' }));
-        }
-        if (!('experimental' in json) || json['experimental'] !== true) {
-            json['experimental'] = true;
-            yield exec.exec('bash', [
-                '-c',
-                `echo '${JSON.stringify(json)}' | sudo tee /etc/docker/daemon.json`
-            ]);
-            yield exec.exec('sudo', ['systemctl', 'restart', 'docker']);
-        }
-    });
+async function ensureDockerExperimental() {
+    let json = {};
+    if (await haveFile(dockerJson)) {
+        json = JSON.parse(await external_fs_.promises.readFile(dockerJson, { encoding: 'utf-8' }));
+    }
+    if (!('experimental' in json) || json['experimental'] !== true) {
+        json['experimental'] = true;
+        await exec.exec('bash', [
+            '-c',
+            `echo '${JSON.stringify(json)}' | sudo tee /etc/docker/daemon.json`
+        ]);
+        await exec.exec('sudo', ['systemctl', 'restart', 'docker']);
+    }
 }
-function findSnapcraftYaml(projectRoot) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const filePaths = [
-            external_path_.join(projectRoot, 'snap', 'snapcraft.yaml'),
-            external_path_.join(projectRoot, 'snapcraft.yaml'),
-            external_path_.join(projectRoot, '.snapcraft.yaml')
-        ];
-        for (const filePath of filePaths) {
-            if (yield haveFile(filePath)) {
-                return filePath;
-            }
+async function findSnapcraftYaml(projectRoot) {
+    const filePaths = [
+        external_path_.join(projectRoot, 'snap', 'snapcraft.yaml'),
+        external_path_.join(projectRoot, 'snapcraft.yaml'),
+        external_path_.join(projectRoot, '.snapcraft.yaml')
+    ];
+    for (const filePath of filePaths) {
+        if (await haveFile(filePath)) {
+            return filePath;
         }
-        throw new Error('Cannot find snapcraft.yaml');
-    });
+    }
+    throw new Error('Cannot find snapcraft.yaml');
 }
-function detectBase(projectRoot) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const snapcraftFile = yield findSnapcraftYaml(projectRoot);
-        const snapcraftYaml = load(yield external_fs_.promises.readFile(snapcraftFile, 'utf-8'), { filename: snapcraftFile });
-        if (snapcraftYaml === undefined) {
-            throw new Error('Cannot parse snapcraft.yaml');
-        }
-        if (snapcraftYaml['build-base']) {
-            return snapcraftYaml['build-base'];
-        }
-        if (snapcraftYaml.base) {
-            return snapcraftYaml.base;
-        }
-        return 'core';
-    });
+async function detectBase(projectRoot) {
+    const snapcraftFile = await findSnapcraftYaml(projectRoot);
+    const snapcraftYaml = load(await external_fs_.promises.readFile(snapcraftFile, 'utf-8'), { filename: snapcraftFile });
+    if (snapcraftYaml === undefined) {
+        throw new Error('Cannot parse snapcraft.yaml');
+    }
+    if (snapcraftYaml['build-base']) {
+        return snapcraftYaml['build-base'];
+    }
+    if (snapcraftYaml.base) {
+        return snapcraftYaml.base;
+    }
+    return 'core';
+}
+async function detectCGroupsV1() {
+    const cgroups = await external_fs_.promises.readFile('/proc/1/cgroup', 'utf-8');
+    return cgroups.includes('cpu,cpuacct');
 }
 
 ;// CONCATENATED MODULE: ./lib/argparser.js
@@ -8103,15 +8090,6 @@ function getChannel(base, channel) {
 
 ;// CONCATENATED MODULE: ./lib/build.js
 // -*- mode: javascript; js-indent-level: 2 -*-
-var build_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
@@ -8139,139 +8117,128 @@ const platforms = {
     s390x: 'linux/s390x'
 };
 class SnapcraftBuilder {
-    constructor(projectRoot, includeBuildInfo, snapcraftChannel, snapcraftArgs, architecture, environment, usePodman) {
+    constructor(projectRoot, includeBuildInfo, snapcraftChannel, snapcraftArgs, architecture, environment, usePodman, storeAuth) {
         this.projectRoot = expandHome(projectRoot);
         this.includeBuildInfo = includeBuildInfo;
         this.snapcraftChannel = snapcraftChannel;
         this.snapcraftArgs = parseArgs(snapcraftArgs);
         this.architecture = architecture;
         this.usePodman = usePodman;
-        const envs = parseArgs(environment);
+        this.storeAuth = storeAuth;
         const envKV = {};
-        for (const env of envs) {
+        for (const env of environment) {
             const [key, value] = env.split('=', 2);
             envKV[key] = value;
         }
         this.environment = envKV;
     }
-    build() {
-        return build_awaiter(this, void 0, void 0, function* () {
-            if (!this.usePodman) {
-                yield ensureDockerExperimental();
-            }
-            const base = yield detectBase(this.projectRoot);
-            if (!['core', 'core18', 'core20', 'core22'].includes(base)) {
-                throw new Error(`Your build requires a base that this tool does not support (${base}). 'base' or 'build-base' in your 'snapcraft.yaml' must be one of 'core', 'core18' or 'core20'.`);
-            }
-            const imageInfo = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                build_url: `https://github.com/${external_process_namespaceObject.env.GITHUB_REPOSITORY}/actions/runs/${external_process_namespaceObject.env.GITHUB_RUN_ID}`
-            };
-            // Copy and update environment to pass to snapcraft
-            const env = this.environment;
-            env['SNAPCRAFT_IMAGE_INFO'] = JSON.stringify(imageInfo);
-            if (this.includeBuildInfo) {
-                env['SNAPCRAFT_BUILD_INFO'] = '1';
-            }
-            if (this.snapcraftChannel !== '') {
-                env['USE_SNAPCRAFT_CHANNEL'] = getChannel(base, this.snapcraftChannel);
-            }
-            let dockerArgs = [];
-            if (this.architecture in platforms && !this.usePodman) {
-                dockerArgs = dockerArgs.concat('--platform', platforms[this.architecture]);
-            }
-            for (const key in env) {
-                dockerArgs = dockerArgs.concat('--env', `${key}=${env[key]}`);
-            }
-            let command = 'docker';
-            let containerImage = `diddledani/snapcraft:${base}`;
-            if (this.usePodman) {
-                command = 'sudo podman';
-                containerImage = `docker.io/${containerImage}`;
-                dockerArgs = dockerArgs.concat('--systemd', 'always');
-            }
-            yield exec.exec(command, [
-                'run',
-                '--rm',
-                '--tty',
-                '--privileged',
-                '--volume',
-                `${this.projectRoot}:/data`,
-                '--workdir',
-                '/data',
-                ...dockerArgs,
-                containerImage,
-                'snapcraft',
-                ...this.snapcraftArgs
-            ], {
-                cwd: this.projectRoot
-            });
+    async build() {
+        if (!this.usePodman) {
+            await ensureDockerExperimental();
+        }
+        const base = await detectBase(this.projectRoot);
+        if (!['core', 'core18', 'core20', 'core22'].includes(base)) {
+            throw new Error(`Your build requires a base that this tool does not support (${base}). 'base' or 'build-base' in your 'snapcraft.yaml' must be one of 'core', 'core18' or 'core20'.`);
+        }
+        if (base === 'core' && !(await detectCGroupsV1())) {
+            throw new Error(`Your build specified 'core' as the base, but your system is using cgroups v2. 'core' does not support cgroups v2. Please use 'core18' or later or an older Linux distribution that uses CGroups version 1 instead.`);
+        }
+        const imageInfo = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            build_url: `https://github.com/${external_process_namespaceObject.env.GITHUB_REPOSITORY}/actions/runs/${external_process_namespaceObject.env.GITHUB_RUN_ID}`
+        };
+        // Copy and update environment to pass to snapcraft
+        const env = this.environment;
+        env['SNAPCRAFT_IMAGE_INFO'] = JSON.stringify(imageInfo);
+        if (this.includeBuildInfo) {
+            env['SNAPCRAFT_BUILD_INFO'] = '1';
+        }
+        if (this.snapcraftChannel !== '') {
+            env['USE_SNAPCRAFT_CHANNEL'] = getChannel(base, this.snapcraftChannel);
+        }
+        if (this.storeAuth !== '') {
+            env['SNAPCRAFT_STORE_CREDENTIALS'] = this.storeAuth;
+        }
+        let dockerArgs = [];
+        if (this.architecture in platforms && !this.usePodman) {
+            dockerArgs = dockerArgs.concat('--platform', platforms[this.architecture]);
+        }
+        for (const key in env) {
+            dockerArgs = dockerArgs.concat('--env', `${key}=${env[key]}`);
+        }
+        let command = 'docker';
+        let containerImage = `diddledani/snapcraft:${base}`;
+        if (this.usePodman) {
+            command = 'sudo podman';
+            containerImage = `docker.io/${containerImage}`;
+            dockerArgs = dockerArgs.concat('--systemd', 'always');
+        }
+        await exec.exec(command, [
+            'run',
+            '--rm',
+            '--tty',
+            '--privileged',
+            '--volume',
+            `${this.projectRoot}:/data`,
+            '--workdir',
+            '/data',
+            ...dockerArgs,
+            containerImage,
+            'snapcraft',
+            ...this.snapcraftArgs
+        ], {
+            cwd: this.projectRoot
         });
     }
     // This wrapper is for the benefit of the tests, due to the crazy
     // typing of fs.promises.readdir()
-    _readdir(dir) {
-        return build_awaiter(this, void 0, void 0, function* () {
-            return yield external_fs_.promises.readdir(dir);
-        });
+    async _readdir(dir) {
+        return await external_fs_.promises.readdir(dir);
     }
-    outputSnap() {
-        return build_awaiter(this, void 0, void 0, function* () {
-            const files = yield this._readdir(this.projectRoot);
-            const snaps = files.filter(name => name.endsWith('.snap'));
-            if (snaps.length === 0) {
-                throw new Error('No snap files produced by build');
-            }
-            if (snaps.length > 1) {
-                core.warning(`Multiple snaps found in ${this.projectRoot}`);
-            }
-            const snap = external_path_.join(this.projectRoot, snaps[0]);
-            yield exec.exec('sudo', ['chown', external_process_namespaceObject.getuid().toString(), snap]);
-            return snap;
-        });
+    async outputSnap() {
+        const files = await this._readdir(this.projectRoot);
+        const snaps = files.filter(name => name.endsWith('.snap'));
+        if (snaps.length === 0) {
+            throw new Error('No snap files produced by build');
+        }
+        if (snaps.length > 1) {
+            core.warning(`Multiple snaps found in ${this.projectRoot}`);
+        }
+        const snap = external_path_.join(this.projectRoot, snaps[0]);
+        await exec.exec('sudo', ['chown', external_process_namespaceObject.getuid().toString(), snap]);
+        return snap;
     }
 }
 
 ;// CONCATENATED MODULE: ./lib/main.js
 // -*- mode: javascript; js-indent-level: 2 -*-
-var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 
 
 
-function run() {
-    var _a, _b;
-    return main_awaiter(this, void 0, void 0, function* () {
-        try {
-            if (external_os_.platform() !== 'linux') {
-                throw new Error(`Only supported on linux platform`);
-            }
-            const path = core.getInput('path');
-            const usePodman = ((_a = core.getInput('use-podman')) !== null && _a !== void 0 ? _a : 'true').toUpperCase() === 'TRUE';
-            const buildInfo = ((_b = core.getInput('build-info')) !== null && _b !== void 0 ? _b : 'true').toUpperCase() === 'TRUE';
-            core.info(`Building Snapcraft project in "${path}"...`);
-            const snapcraftChannel = core.getInput('snapcraft-channel');
-            const snapcraftArgs = core.getInput('snapcraft-args');
-            const architecture = core.getInput('architecture');
-            const environment = core.getInput('environment');
-            const builder = new SnapcraftBuilder(path, buildInfo, snapcraftChannel, snapcraftArgs, architecture, environment, usePodman);
-            yield builder.build();
-            const snap = yield builder.outputSnap();
-            core.setOutput('snap', snap);
+async function run() {
+    try {
+        if (external_os_.platform() !== 'linux') {
+            throw new Error(`Only supported on linux platform`);
         }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error.message);
-            }
+        const path = core.getInput('path');
+        const usePodman = (core.getInput('use-podman') ?? 'true').toUpperCase() === 'TRUE';
+        const buildInfo = (core.getInput('build-info') ?? 'true').toUpperCase() === 'TRUE';
+        core.info(`Building Snapcraft project in "${path}"...`);
+        const snapcraftChannel = core.getInput('snapcraft-channel');
+        const snapcraftArgs = core.getInput('snapcraft-args');
+        const architecture = core.getInput('architecture');
+        const environment = core.getMultilineInput('environment');
+        const store_auth = core.getInput('store-auth');
+        const builder = new SnapcraftBuilder(path, buildInfo, snapcraftChannel, snapcraftArgs, architecture, environment, usePodman, store_auth);
+        await builder.build();
+        const snap = await builder.outputSnap();
+        core.setOutput('snap', snap);
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.setFailed(error.message);
         }
-    });
+    }
 }
 run();
 

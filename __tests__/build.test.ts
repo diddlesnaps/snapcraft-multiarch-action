@@ -8,7 +8,7 @@ import * as exec from '@actions/exec'
 import * as build from '../src/build'
 import * as tools from '../src/tools'
 
-const default_base = 'core20'
+const default_base = 'core22'
 
 afterEach(() => {
   jest.restoreAllMocks()
@@ -21,8 +21,9 @@ test('SnapcraftBuilder expands tilde in project root', () => {
     'stable',
     '',
     '',
-    '',
-    false
+    [],
+    false,
+    ''
   )
   expect(builder.projectRoot).toBe(os.homedir())
 
@@ -32,8 +33,9 @@ test('SnapcraftBuilder expands tilde in project root', () => {
     'stable',
     '',
     '',
-    '',
-    false
+    [],
+    false,
+    ''
   )
   expect(builder.projectRoot).toBe(path.join(os.homedir(), 'foo/bar'))
 })
@@ -65,7 +67,7 @@ for (const base of ['core', 'core18', 'core20', 'core22']) {
 }
 for (const [base, arch, channel] of matrix) {
   test(`SnapcraftBuilder.build runs a snap build using Docker with base: ${base}; and arch: ${arch}`, async () => {
-    expect.assertions(3)
+    expect.assertions(4)
 
     const ensureDockerExperimentalMock = jest
       .spyOn(tools, 'ensureDockerExperimental')
@@ -75,6 +77,9 @@ for (const [base, arch, channel] of matrix) {
       .mockImplementation(
         async (projectRoot: string): Promise<string> => Promise.resolve(base)
       )
+    const detectCGroupsV1Mock = jest
+      .spyOn(tools, 'detectCGroupsV1')
+      .mockImplementation(async (): Promise<boolean> => Promise.resolve(true))
     const execMock = jest
       .spyOn(exec, 'exec')
       .mockImplementation(
@@ -90,8 +95,9 @@ for (const [base, arch, channel] of matrix) {
       'stable',
       '',
       arch,
-      '',
-      false
+      [],
+      false,
+      ''
     )
     await builder.build()
 
@@ -102,6 +108,11 @@ for (const [base, arch, channel] of matrix) {
 
     expect(ensureDockerExperimentalMock).toHaveBeenCalled()
     expect(detectBaseMock).toHaveBeenCalled()
+    if (base === 'core') {
+      expect(detectCGroupsV1Mock).toHaveBeenCalled()
+    } else {
+      expect(detectCGroupsV1Mock).not.toHaveBeenCalled()
+    }
     expect(execMock).toHaveBeenCalledWith(
       'docker',
       [
@@ -130,8 +141,7 @@ for (const [base, arch, channel] of matrix) {
   })
 
   test(`SnapcraftBuilder.build runs a snap build using Podman with base: ${base}; and arch: ${arch}`, async () => {
-    expect.assertions(3)
-
+    expect.assertions(4)
     const ensureDockerExperimentalMock = jest
       .spyOn(tools, 'ensureDockerExperimental')
       .mockImplementation(async (): Promise<void> => Promise.resolve())
@@ -140,6 +150,9 @@ for (const [base, arch, channel] of matrix) {
       .mockImplementation(
         async (projectRoot: string): Promise<string> => Promise.resolve(base)
       )
+    const detectCGroupsV1Mock = jest
+      .spyOn(tools, 'detectCGroupsV1')
+      .mockImplementation(async (): Promise<boolean> => Promise.resolve(true))
     const execMock = jest
       .spyOn(exec, 'exec')
       .mockImplementation(
@@ -155,13 +168,19 @@ for (const [base, arch, channel] of matrix) {
       'stable',
       '',
       arch,
-      '',
-      true
+      [],
+      true,
+      ''
     )
     await builder.build()
 
     expect(ensureDockerExperimentalMock).not.toHaveBeenCalled()
     expect(detectBaseMock).toHaveBeenCalled()
+    if (base === 'core') {
+      expect(detectCGroupsV1Mock).toHaveBeenCalled()
+    } else {
+      expect(detectCGroupsV1Mock).not.toHaveBeenCalled()
+    }
     expect(execMock).toHaveBeenCalledWith(
       'sudo podman',
       [
@@ -214,8 +233,9 @@ test('SnapcraftBuilder.build can disable build info', async () => {
     'stable',
     '',
     '',
-    '',
-    false
+    [],
+    false,
+    ''
   )
   await builder.build()
 
@@ -266,8 +286,9 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
     'stable',
     '--foo --bar',
     '',
-    '',
-    false
+    [],
+    false,
+    ''
   )
   await builder.build()
 
@@ -295,6 +316,118 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
   )
 })
 
+test('SnapcraftBuilder.build can pass extra environment variables', async () => {
+  expect.assertions(1)
+
+  const ensureDockerExperimentalMock = jest
+    .spyOn(tools, 'ensureDockerExperimental')
+    .mockImplementation(async (): Promise<void> => Promise.resolve())
+  const detectBaseMock = jest
+    .spyOn(tools, 'detectBase')
+    .mockImplementation(
+      async (projectRoot: string): Promise<string> => default_base
+    )
+  const execMock = jest
+    .spyOn(exec, 'exec')
+    .mockImplementation(
+      async (program: string, args?: string[]): Promise<number> => 0
+    )
+
+  const builder = new build.SnapcraftBuilder(
+    '.',
+    false,
+    'stable',
+    '--foo --bar',
+    '',
+    ['FOO=bar', 'BAZ=qux'],
+    false,
+    ''
+  )
+  await builder.build()
+
+  expect(execMock).toHaveBeenCalledWith(
+    'docker',
+    [
+      'run',
+      '--rm',
+      '--tty',
+      '--privileged',
+      '--volume',
+      `${process.cwd()}:/data`,
+      '--workdir',
+      '/data',
+      '--env',
+      'FOO=bar',
+      '--env',
+      'BAZ=qux',
+      '--env',
+      `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
+      '--env',
+      'USE_SNAPCRAFT_CHANNEL=stable',
+      `diddledani/snapcraft:${default_base}`,
+      'snapcraft',
+      '--foo',
+      '--bar'
+    ],
+    expect.anything()
+  )
+})
+
+test('SnapcraftBuilder.build adds store credentials', async () => {
+  expect.assertions(1)
+
+  const ensureDockerExperimentalMock = jest
+    .spyOn(tools, 'ensureDockerExperimental')
+    .mockImplementation(async (): Promise<void> => Promise.resolve())
+  const detectBaseMock = jest
+    .spyOn(tools, 'detectBase')
+    .mockImplementation(
+      async (projectRoot: string): Promise<string> => default_base
+    )
+  const execMock = jest
+    .spyOn(exec, 'exec')
+    .mockImplementation(
+      async (program: string, args?: string[]): Promise<number> => 0
+    )
+
+  const builder = new build.SnapcraftBuilder(
+    '.',
+    false,
+    'stable',
+    '--foo --bar',
+    '',
+    [],
+    false,
+    'TEST_STORE_CREDENTIALS'
+  )
+  await builder.build()
+
+  expect(execMock).toHaveBeenCalledWith(
+    'docker',
+    [
+      'run',
+      '--rm',
+      '--tty',
+      '--privileged',
+      '--volume',
+      `${process.cwd()}:/data`,
+      '--workdir',
+      '/data',
+      '--env',
+      `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
+      '--env',
+      'USE_SNAPCRAFT_CHANNEL=stable',
+      '--env',
+      'SNAPCRAFT_STORE_CREDENTIALS=TEST_STORE_CREDENTIALS',
+      `diddledani/snapcraft:${default_base}`,
+      'snapcraft',
+      '--foo',
+      '--bar'
+    ],
+    expect.anything()
+  )
+})
+
 test('SnapcraftBuilder.outputSnap fails if there are no snaps', async () => {
   expect.assertions(2)
 
@@ -305,8 +438,9 @@ test('SnapcraftBuilder.outputSnap fails if there are no snaps', async () => {
     'stable',
     '',
     '',
-    '',
-    false
+    [],
+    false,
+    ''
   )
 
   const readdir = jest
@@ -331,8 +465,9 @@ test('SnapcraftBuilder.outputSnap returns the first snap', async () => {
     'stable',
     '',
     '',
-    '',
-    false
+    [],
+    false,
+    ''
   )
 
   const readdir = jest

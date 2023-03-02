@@ -76,7 +76,7 @@ notes
 -----
 
 * `s390x` is broken at the moment.
-* `core20` & `core22` builds do not support `i386` architecture because Ubuntu has dropped support for `i386` in Ubuntu 20.04 and later.
+* Builds for `core20`, and later, do not support `i386` architecture because Ubuntu has dropped support for `i386` in Ubuntu 20.04 and later.
 * `core` builds do not support `s390x` architecture because Ubuntu does not have support for `s390x` before Ubuntu 18.04.
 
 ## Action inputs
@@ -143,3 +143,27 @@ to indicate an alternative architecture from any of those supported by
 the `snapcraft` utility. At the time of writing the supported
 architectures are `amd64`, `i386`, `arm64`, `armhf`, `ppc64el` and `s390x`.
 This is most-useful when used with GitHub Actions' `matrix` feature.
+
+### `environment`
+
+Add environment variables to the Snapcraft build context. Each
+variable needs to be specified on a separate line.  For example:
+
+```yaml
+with:
+  environment: |
+    FOO=bar
+    BAZ=qux
+```
+### `store-auth`
+
+Set the `SNAPCRAFT_STORE_CREDENTIALS` environment variable. This
+is useful when using the `snapcraft push` command.
+
+You should not save the token into the yaml file directly, but use
+the GitHub Actions secrets feature:
+
+```yaml
+with:
+  store-auth: ${{ secrets.STORE_AUTH }}
+```

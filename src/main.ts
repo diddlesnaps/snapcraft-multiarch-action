@@ -19,7 +19,8 @@ async function run(): Promise<void> {
     const snapcraftChannel = core.getInput('snapcraft-channel')
     const snapcraftArgs = core.getInput('snapcraft-args')
     const architecture = core.getInput('architecture')
-    const environment = core.getInput('environment')
+    const environment = core.getMultilineInput('environment')
+    const store_auth = core.getInput('store-auth')
 
     const builder = new SnapcraftBuilder(
       path,
@@ -28,7 +29,8 @@ async function run(): Promise<void> {
       snapcraftArgs,
       architecture,
       environment,
-      usePodman
+      usePodman,
+      store_auth
     )
     await builder.build()
     const snap = await builder.outputSnap()
