@@ -43,6 +43,7 @@ export class SnapcraftBuilder {
   architecture: string
   environment: {[key: string]: string}
   usePodman: boolean
+  storeAuth: string
 
   constructor(
     projectRoot: string,
@@ -50,8 +51,9 @@ export class SnapcraftBuilder {
     snapcraftChannel: string,
     snapcraftArgs: string,
     architecture: string,
-    environment: string,
-    usePodman: boolean
+    environment: string[],
+    usePodman: boolean,
+    storeAuth: string
   ) {
     this.projectRoot = expandHome(projectRoot)
     this.includeBuildInfo = includeBuildInfo
@@ -59,10 +61,10 @@ export class SnapcraftBuilder {
     this.snapcraftArgs = parseArgs(snapcraftArgs)
     this.architecture = architecture
     this.usePodman = usePodman
+    this.storeAuth = storeAuth
 
-    const envs = parseArgs(environment)
     const envKV: {[key: string]: string} = {}
-    for (const env of envs) {
+    for (const env of environment) {
       const [key, value] = env.split('=', 2)
       envKV[key] = value
     }
@@ -81,6 +83,12 @@ export class SnapcraftBuilder {
       )
     }
 
+    if (base === 'core' && !(await tools.detectCGroupsV1())) {
+      throw new Error(
+        `Your build specified 'core' as the base, but your system is using cgroups v2. 'core' does not support cgroups v2. Please use 'core18' or later or an older Linux distribution that uses CGroups version 1 instead.`
+      )
+    }
+
     const imageInfo: ImageInfo = {
       // eslint-disable-next-line @typescript-eslint/naming-convention
       build_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
@@ -93,6 +101,9 @@ export class SnapcraftBuilder {
     }
     if (this.snapcraftChannel !== '') {
       env['USE_SNAPCRAFT_CHANNEL'] = getChannel(base, this.snapcraftChannel)
+    }
+    if (this.storeAuth !== '') {
+      env['SNAPCRAFT_STORE_CREDENTIALS'] = this.storeAuth
     }
 
     let dockerArgs: string[] = []

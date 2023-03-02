@@ -69,3 +69,8 @@ export async function detectBase(projectRoot: string): Promise<string> {
   }
   return 'core'
 }
+
+export async function detectCGroupsV1(): Promise<boolean> {
+  const cgroups = await fs.promises.readFile('/proc/1/cgroup', 'utf-8')
+  return cgroups.includes('cpu,cpuacct')
+}

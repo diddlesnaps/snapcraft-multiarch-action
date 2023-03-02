@@ -64,6 +64,25 @@ inputs:
       combine this with the build matrix feature of GitHub Actions.
     default: 'amd64'
     required: true
+  environment:
+    description: >
+      Environment to pass to Snapcraft
+
+      Add environment variables to the Snapcraft build context. Each
+      variable needs to be specified on a separate line.  For example:
+
+          environment: |
+            FOO=bar
+            BAZ=qux
+    required: false
+  store-auth:
+    description: >
+      The Snap Store authentication token
+
+      This token is used to authenticate with the Snap Store when
+      uploading the snap.  It can be obtained by running `snapcraft
+      export-login --snaps <snap-name> -` and copying the output.
+    required: false
 outputs:
   snap:
     description: 'The file name of the resulting snap.'
