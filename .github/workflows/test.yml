@@ -19,7 +19,6 @@ jobs:
     strategy:
       matrix:
         base:
-          - core
           - core18
           - core20
           - core22
@@ -33,20 +32,58 @@ jobs:
           - ''
           - 'true'
           - 'false'
+        runner:
+          - ubuntu-latest
         include:
           - base: core
+            arch: ''
+            usePodman: 'false'
+            runner: ubuntu-20.04
+          - base: core
+            arch: ''
+            usePodman: 'true'
+            runner: ubuntu-20.04
+          - base: core
             arch: i386
             usePodman: 'false'
+            runner: ubuntu-20.04
           - base: core
             arch: i386
             usePodman: 'true'
+            runner: ubuntu-20.04
+          - base: core
+            arch: amd64
+            usePodman: 'false'
+            runner: ubuntu-20.04
+          - base: core
+            arch: amd64
+            usePodman: 'true'
+            runner: ubuntu-20.04
+          - base: core
+            arch: armhf
+            usePodman: 'false'
+            runner: ubuntu-20.04
+          - base: core
+            arch: armhf
+            usePodman: 'true'
+            runner: ubuntu-20.04
+          - base: core
+            arch: arm64
+            usePodman: 'false'
+            runner: ubuntu-20.04
+          - base: core
+            arch: arm64
+            usePodman: 'true'
+            runner: ubuntu-20.04
           - base: core18
             arch: i386
             usePodman: 'false'
+            runner: ubuntu-latest
           - base: core18
             arch: i386
             usePodman: 'true'
-    runs-on: ubuntu-latest
+            runner: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     steps:
     - uses: docker/setup-qemu-action@v2
     - uses: actions/checkout@v3
