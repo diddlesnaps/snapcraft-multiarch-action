@@ -67,7 +67,7 @@ for (const base of ['core', 'core18', 'core20', 'core22']) {
 }
 for (const [base, arch, channel] of matrix) {
   test(`SnapcraftBuilder.build runs a snap build using Docker with base: ${base}; and arch: ${arch}`, async () => {
-    expect.assertions(4)
+    expect.assertions(5)
 
     const ensureDockerExperimentalMock = jest
       .spyOn(tools, 'ensureDockerExperimental')
@@ -113,7 +113,14 @@ for (const [base, arch, channel] of matrix) {
     } else {
       expect(detectCGroupsV1Mock).not.toHaveBeenCalled()
     }
-    expect(execMock).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenNthCalledWith(
+      1,
+      'docker',
+      ['pull', ...platform, `diddledani/snapcraft:${base}`],
+      expect.anything()
+    )
+    expect(execMock).toHaveBeenNthCalledWith(
+      2,
       'docker',
       [
         'run',
@@ -141,7 +148,7 @@ for (const [base, arch, channel] of matrix) {
   })
 
   test(`SnapcraftBuilder.build runs a snap build using Podman with base: ${base}; and arch: ${arch}`, async () => {
-    expect.assertions(4)
+    expect.assertions(5)
     const ensureDockerExperimentalMock = jest
       .spyOn(tools, 'ensureDockerExperimental')
       .mockImplementation(async (): Promise<void> => Promise.resolve())
@@ -174,6 +181,11 @@ for (const [base, arch, channel] of matrix) {
     )
     await builder.build()
 
+    let platform: string[] = []
+    if (arch && arch in build.platforms) {
+      platform = ['--platform', build.platforms[arch]]
+    }
+
     expect(ensureDockerExperimentalMock).not.toHaveBeenCalled()
     expect(detectBaseMock).toHaveBeenCalled()
     if (base === 'core') {
@@ -181,7 +193,14 @@ for (const [base, arch, channel] of matrix) {
     } else {
       expect(detectCGroupsV1Mock).not.toHaveBeenCalled()
     }
-    expect(execMock).toHaveBeenCalledWith(
+    expect(execMock).toHaveBeenNthCalledWith(
+      1,
+      'sudo podman',
+      ['pull', ...platform, `docker.io/diddledani/snapcraft:${base}`],
+      expect.anything()
+    )
+    expect(execMock).toHaveBeenNthCalledWith(
+      2,
       'sudo podman',
       [
         'run',
@@ -192,6 +211,7 @@ for (const [base, arch, channel] of matrix) {
         `${process.cwd()}/${projectDir}:/data`,
         '--workdir',
         '/data',
+        ...platform,
         '--env',
         `SNAPCRAFT_IMAGE_INFO={"build_url":"https://github.com/user/repo/actions/runs/42"}`,
         '--env',
@@ -239,7 +259,7 @@ test('SnapcraftBuilder.build can disable build info', async () => {
   )
   await builder.build()
 
-  expect(execMock).toHaveBeenCalledWith(
+  expect(execMock).toHaveBeenLastCalledWith(
     'docker',
     [
       'run',
@@ -292,7 +312,7 @@ test('SnapcraftBuilder.build can pass additional arguments', async () => {
   )
   await builder.build()
 
-  expect(execMock).toHaveBeenCalledWith(
+  expect(execMock).toHaveBeenLastCalledWith(
     'docker',
     [
       'run',
@@ -345,7 +365,7 @@ test('SnapcraftBuilder.build can pass extra environment variables', async () => 
   )
   await builder.build()
 
-  expect(execMock).toHaveBeenCalledWith(
+  expect(execMock).toHaveBeenLastCalledWith(
     'docker',
     [
       'run',
@@ -402,7 +422,7 @@ test('SnapcraftBuilder.build adds store credentials', async () => {
   )
   await builder.build()
 
-  expect(execMock).toHaveBeenCalledWith(
+  expect(execMock).toHaveBeenLastCalledWith(
     'docker',
     [
       'run',
@@ -486,8 +506,6 @@ test('SnapcraftBuilder.outputSnap returns the first snap', async () => {
     .spyOn(core, 'warning')
     .mockImplementation((_message: string | Error): void => {})
 
-  await expect(builder.outputSnap()).resolves.toEqual(
-    path.join(process.cwd(), 'project-root/one.snap')
-  )
+  await expect(builder.outputSnap()).resolves.toEqual('./project-root/one.snap')
   expect(readdir).toHaveBeenCalled()
 })
