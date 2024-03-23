@@ -1,0 +1,30 @@
+# Copyright (c) 2024 Markus Falb <markus.falb@mafalb.at>
+# GNU General Public License v3.0+
+# see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt
+---
+
+# https://github.com/actions/runner-images/issues/9425
+name: 'Fix crun'
+description: 'Fix crun because of incompatible kernel'
+
+inputs:
+  checksums:
+    description: 'The path to the CHECKSUM file'
+    type: string
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: patch crun
+      shell: bash
+      env:
+        URI: https://github.com/containers/crun/releases/download/1.14.4/crun-1.14.4-linux-amd64
+        CHECKSUMS: ${{ inputs.checksums }}
+      run: |
+        cd $(dirname "$CHECKSUMS")
+        test -f "$(basename $CHECKSUMS)"
+        curl -Lo crun "$URI"
+        sha256sum -c "$(basename $CHECKSUMS)"
+        sudo install crun /usr/bin/crun
+...

@@ -10,7 +10,11 @@ jobs:
   unit: # make sure build/ci work properly
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Install crun
+      uses: ./.github/actions/fix-crun
+      with:
+        checksums: CHECKSUMS
     - run: |
         npm install
         npm run all
@@ -86,7 +90,11 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
     - uses: docker/setup-qemu-action@v2
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Install crun
+      uses: ./.github/actions/fix-crun
+      with:
+        checksums: CHECKSUMS
     - uses: ./
       id: snapcraft
       with:
