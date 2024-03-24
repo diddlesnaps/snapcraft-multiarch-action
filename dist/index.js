@@ -8160,8 +8160,10 @@ class SnapcraftBuilder {
             env['SNAPCRAFT_STORE_CREDENTIALS'] = this.storeAuth;
         }
         let dockerArgs = [];
-        if (this.architecture in platforms && !this.usePodman) {
+        let pullArgs = [];
+        if (this.architecture in platforms) {
             dockerArgs = dockerArgs.concat('--platform', platforms[this.architecture]);
+            pullArgs = pullArgs.concat('--platform', platforms[this.architecture]);
         }
         for (const key in env) {
             dockerArgs = dockerArgs.concat('--env', `${key}=${env[key]}`);
@@ -8173,6 +8175,9 @@ class SnapcraftBuilder {
             containerImage = `docker.io/${containerImage}`;
             dockerArgs = dockerArgs.concat('--systemd', 'always');
         }
+        await exec.exec(command, ['pull', ...pullArgs, containerImage], {
+            cwd: this.projectRoot
+        });
         await exec.exec(command, [
             'run',
             '--rm',
@@ -8196,6 +8201,7 @@ class SnapcraftBuilder {
         return await external_fs_.promises.readdir(dir);
     }
     async outputSnap() {
+        const workspace = external_process_namespaceObject.env.GITHUB_WORKSPACE ?? external_process_namespaceObject.cwd();
         const files = await this._readdir(this.projectRoot);
         const snaps = files.filter(name => name.endsWith('.snap'));
         if (snaps.length === 0) {
@@ -8204,7 +8210,7 @@ class SnapcraftBuilder {
         if (snaps.length > 1) {
             core.warning(`Multiple snaps found in ${this.projectRoot}`);
         }
-        const snap = external_path_.join(this.projectRoot, snaps[0]);
+        const snap = external_path_.join(this.projectRoot, snaps[0]).replace(workspace, '.');
         await exec.exec('sudo', ['chown', external_process_namespaceObject.getuid().toString(), snap]);
         return snap;
     }

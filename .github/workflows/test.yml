@@ -19,7 +19,7 @@ jobs:
         npm install
         npm run all
 
-  integration: # make sure the action works on a clean machine without building
+  docker-integration: # make sure the action works on a clean machine without building
     strategy:
       matrix:
         base:
@@ -32,60 +32,26 @@ jobs:
           - armhf
           - arm64
           - ppc64el
-        usePodman:
-          - ''
-          - 'true'
-          - 'false'
         runner:
           - ubuntu-latest
         include:
           - base: core
             arch: ''
-            usePodman: 'false'
-            runner: ubuntu-20.04
-          - base: core
-            arch: ''
-            usePodman: 'true'
             runner: ubuntu-20.04
           - base: core
             arch: i386
-            usePodman: 'false'
-            runner: ubuntu-20.04
-          - base: core
-            arch: i386
-            usePodman: 'true'
             runner: ubuntu-20.04
           - base: core
             arch: amd64
-            usePodman: 'false'
-            runner: ubuntu-20.04
-          - base: core
-            arch: amd64
-            usePodman: 'true'
             runner: ubuntu-20.04
           - base: core
             arch: armhf
-            usePodman: 'false'
-            runner: ubuntu-20.04
-          - base: core
-            arch: armhf
-            usePodman: 'true'
             runner: ubuntu-20.04
           - base: core
             arch: arm64
-            usePodman: 'false'
-            runner: ubuntu-20.04
-          - base: core
-            arch: arm64
-            usePodman: 'true'
             runner: ubuntu-20.04
           - base: core18
             arch: i386
-            usePodman: 'false'
-            runner: ubuntu-latest
-          - base: core18
-            arch: i386
-            usePodman: 'true'
             runner: ubuntu-latest
     runs-on: ${{ matrix.runner }}
     steps:
@@ -100,4 +66,50 @@ jobs:
       with:
         path: './test-projects/${{ matrix.base }}'
         architecture: ${{ matrix.arch }}
-        use-podman: ${{ matrix.usePodman }}
+
+  podman-integration: # make sure the action works on a clean machine without building
+    strategy:
+      matrix:
+        base:
+          - core20
+          - core22
+        arch:
+          - name: ''
+            runner: ubuntu-latest
+          - name: ''
+            runner: [self-hosted, linux, ARM64]
+          - name: amd64
+            runner: ubuntu-latest
+          - name: arm64
+            runner: [self-hosted, linux, ARM64]
+        include:
+          - base: core
+            arch:
+              name: ''
+              runner: ubuntu-20.04
+          - base: core
+            arch:
+              name: i386
+              runner: ubuntu-20.04
+          - base: core
+            arch:
+              name: amd64
+              runner: ubuntu-20.04
+          - base: core18
+            arch:
+              name: i386
+              runner: ubuntu-latest
+          - base: core18
+            arch:
+              name: amd64
+              runner: ubuntu-latest
+    runs-on: ${{ matrix.arch.runner }}
+    steps:
+    - uses: docker/setup-qemu-action@v2
+    - uses: actions/checkout@v3
+    - uses: ./
+      id: snapcraft
+      with:
+        path: './test-projects/${{ matrix.base }}'
+        architecture: ${{ matrix.arch.name }}
+        use-podman: 'true'
