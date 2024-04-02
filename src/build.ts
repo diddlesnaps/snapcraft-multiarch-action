@@ -107,8 +107,10 @@ export class SnapcraftBuilder {
     }
 
     let dockerArgs: string[] = []
-    if (this.architecture in platforms && !this.usePodman) {
+    let pullArgs: string[] = []
+    if (this.architecture in platforms) {
       dockerArgs = dockerArgs.concat('--platform', platforms[this.architecture])
+      pullArgs = pullArgs.concat('--platform', platforms[this.architecture])
     }
 
     for (const key in env) {
@@ -122,6 +124,11 @@ export class SnapcraftBuilder {
       containerImage = `docker.io/${containerImage}`
       dockerArgs = dockerArgs.concat('--systemd', 'always')
     }
+
+    await exec.exec(command, ['pull', ...pullArgs, containerImage], {
+      cwd: this.projectRoot
+    })
+
     await exec.exec(
       command,
       [
@@ -151,6 +158,8 @@ export class SnapcraftBuilder {
   }
 
   async outputSnap(): Promise<string> {
+    const workspace = process.env['GITHUB_WORKSPACE'] ?? process.cwd()
+
     const files = await this._readdir(this.projectRoot)
     const snaps = files.filter(name => name.endsWith('.snap'))
 
@@ -160,7 +169,7 @@ export class SnapcraftBuilder {
     if (snaps.length > 1) {
       core.warning(`Multiple snaps found in ${this.projectRoot}`)
     }
-    const snap = path.join(this.projectRoot, snaps[0])
+    const snap = path.join(this.projectRoot, snaps[0]).replace(workspace, '.')
     await exec.exec('sudo', ['chown', process.getuid().toString(), snap])
     return snap
   }
