@@ -41,7 +41,7 @@ test('SnapcraftBuilder expands tilde in project root', () => {
 })
 
 let matrix: [string, string, string][] = []
-for (const base of ['core', 'core18', 'core20', 'core22']) {
+for (const base of ['core', 'core18', 'core20', 'core22', 'core24']) {
   for (const arch of [
     '',
     'amd64',
