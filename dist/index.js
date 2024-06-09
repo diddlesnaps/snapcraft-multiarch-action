@@ -8067,6 +8067,7 @@ function parseArgs(argumentsString) {
 ;// CONCATENATED MODULE: ./lib/channel-matrix.js
 function getChannel(base, channel) {
     switch (base) {
+        case 'core24':
         case 'core22':
         case 'core20':
             return channel;
@@ -8137,8 +8138,8 @@ class SnapcraftBuilder {
             await ensureDockerExperimental();
         }
         const base = await detectBase(this.projectRoot);
-        if (!['core', 'core18', 'core20', 'core22'].includes(base)) {
-            throw new Error(`Your build requires a base that this tool does not support (${base}). 'base' or 'build-base' in your 'snapcraft.yaml' must be one of 'core', 'core18' or 'core20'.`);
+        if (!['core', 'core18', 'core20', 'core22', 'core24'].includes(base)) {
+            throw new Error(`Your build requires a base that this tool does not support (${base}). 'base' or 'build-base' in your 'snapcraft.yaml' must be one of 'core', 'core18', 'core20', 'core22' or 'core24'.`);
         }
         if (base === 'core' && !(await detectCGroupsV1())) {
             throw new Error(`Your build specified 'core' as the base, but your system is using cgroups v2. 'core' does not support cgroups v2. Please use 'core18' or later or an older Linux distribution that uses CGroups version 1 instead.`);

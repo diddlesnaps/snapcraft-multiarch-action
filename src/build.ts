@@ -77,9 +77,9 @@ export class SnapcraftBuilder {
     }
     const base = await tools.detectBase(this.projectRoot)
 
-    if (!['core', 'core18', 'core20', 'core22'].includes(base)) {
+    if (!['core', 'core18', 'core20', 'core22', 'core24'].includes(base)) {
       throw new Error(
-        `Your build requires a base that this tool does not support (${base}). 'base' or 'build-base' in your 'snapcraft.yaml' must be one of 'core', 'core18' or 'core20'.`
+        `Your build requires a base that this tool does not support (${base}). 'base' or 'build-base' in your 'snapcraft.yaml' must be one of 'core', 'core18', 'core20', 'core22' or 'core24'.`
       )
     }
 

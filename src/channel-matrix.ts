@@ -1,5 +1,6 @@
 export function getChannel(base: string, channel: string): string {
   switch (base) {
+    case 'core24':
     case 'core22':
     case 'core20':
       return channel
